@@ -46,6 +46,9 @@ class Condition(object):
     def get_left_side(self):
         return self.__left_side
 
+    def get_right_side(self):
+        return self.__right_side
+
     def get_state(self):
         return self.__state
 
@@ -152,9 +155,16 @@ class CustomConditions(object):
     """
     conditions which is created during applying CommonConditions and assumption
     """
-    def __init__(self, *conditions):
-        self.__conditions = conditions
+    def __init__(self, condition):
+        self.__conditions = []
+        self.append_condition(condition)
 
-    def recalculation_conditions(self):
+    def append_condition(self, condition):
+        left_side = condition.get_left_side()
+        assert len(left_side) == 1
         for cond in self.__conditions:
-            raise Exception("Not implemented")
+            right = cond.get_right_side()
+            if right.contains(left_side):
+                right.replace_in_side(left_side, condition.get_right_side())
+        self.__conditions.append(condition)
+

@@ -73,3 +73,21 @@ class Side(object):
         assert self.contains_element(var)
         self.__vars.remove(var)
         assert len(self.__vars) == length - 1
+
+    def replace_in_side(self, would_repl, replacement):
+        """ all variables in 'would_repl' will be replaced to 'replacement' """
+        assert isinstance(would_repl, Side) and isinstance(replacement, Side)
+        assert self.contains(would_repl)
+        #remove all elements from would_repl in self
+        for var in would_repl.__vars:
+            self.pop_variable(var)
+
+        # add all elements from replacement to self
+        for var in replacement.__vars:
+            self.add_variable(var)
+
+    def add_variable(self, variable):
+        if self.contains_element(variable):
+            self.pop_variable(variable)
+        else:
+            self.__vars.append(variable)
