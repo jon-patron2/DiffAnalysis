@@ -22,8 +22,14 @@ class Condition(object):
 
         """
         super(Condition, self).__init__()
-        if right_side is not None and state != StateConditions.IS_ZERO:
-            raise Exception("Bad values in arguments")
+        is_not_sum = (
+            state == StateConditions.IS_ZERO or
+            state == StateConditions.IS_NOT_ZERO
+        )
+        if len(right_side) > 0 and is_not_sum:
+            raise Exception("Bad values in arguments: "
+                            "right_side is %s and state %s" %
+                            (right_side, state))
         assert isinstance(left_side, Side)
         assert right_side is None or isinstance(right_side, Side)
         self.__state = state
@@ -33,7 +39,7 @@ class Condition(object):
     def __eq__(self, condition_obj):
         assert isinstance(condition_obj, Condition)
         print ("Method __eq__ of Condition is called")
-        assert 1 == 0  # not implemented
+        return id(self) == id(condition_obj)
 
     def __str__(self):
         if self.__state == StateConditions.IS_ZERO:
@@ -51,6 +57,9 @@ class Condition(object):
 
     def get_state(self):
         return self.__state
+
+    def set_state(self, state):
+        self.__state = state
 
     @staticmethod
     def create_from_transaction(trans):
@@ -124,13 +133,13 @@ class CommonConditions(object):
                 if ind in zero_pos:
                     zero_vars.append(Condition(
                         Side(self.__input_variables[ind]),
-                        None,
+                        Side(),
                         StateConditions.IS_ZERO)
                     )
                 else:
                     none_zero_vars.append(Condition(
                         Side(self.__input_variables[ind]),
-                        None,
+                        Side(),
                         StateConditions.IS_NOT_ZERO))
             self.__conditions.append(zero_vars)
             self.__complements.append(none_zero_vars)
@@ -155,11 +164,18 @@ class CustomConditions(object):
     """
     conditions which is created during applying CommonConditions and assumption
     """
-    def __init__(self, condition):
+    def __init__(self):
         self.__conditions = []
-        self.append_condition(condition)
+
+    def __str__(self):
+        str_cc = "\n\t".join(map(str, self.__conditions))
+        return "{ \n\t" + str_cc + " \n}"
+
+    def __len__(self):
+        return len(self.__conditions)
 
     def append_condition(self, condition):
+        print "cond = ", str(condition)
         left_side = condition.get_left_side()
         assert len(left_side) == 1
         for cond in self.__conditions:
@@ -168,3 +184,15 @@ class CustomConditions(object):
                 right.replace_in_side(left_side, condition.get_right_side())
         self.__conditions.append(condition)
 
+        for cond1 in self.__conditions:
+            left1 = cond1.get_left_side()
+            for cond2 in self.__conditions:
+                right2 = cond2.get_right_side()
+                if cond1 != cond2 and right2.contains(left1):
+                    right2.replace_in_side(left1, cond1.get_right_side())
+                    if len(right2) == 0:
+                        cond2.set_state(StateConditions.IS_ZERO)
+
+    def get_condition(self, index):
+        assert index <= len(self.__conditions)
+        return self.__conditions[index]

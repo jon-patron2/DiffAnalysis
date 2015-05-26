@@ -56,6 +56,9 @@ class Variable(object):
     def is_output(self):
         return self.__type == TypeVariable.OUTPUT
 
+    def is_as_type(self, type_var):
+        return self.__type == type_var
+
     def reset(self):
         self.__is_zero = False
 

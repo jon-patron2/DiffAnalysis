@@ -1,10 +1,15 @@
 from variable import Variable
+from variable import TypeVariable
+
+
+class SideException(Exception):
+    pass
 
 
 class Side(object):
     def __init__(self, *args):
         assert all([isinstance(x, Variable) for x in args])
-        self.__vars = args
+        self.__vars = list(args)
 
     def __eq__(self, other):
         if len(self.__vars) == len(other.__vars):
@@ -18,6 +23,12 @@ class Side(object):
         str_vars = map(lambda var: "[" + str(var) + "]", self.__vars)
         return " XOR ".join(str_vars) if len(str_vars) > 0 else "[]"
 
+    def __len__(self):
+        return len(self.__vars)
+
+    def copy(self):
+        return Side(*self.__vars)
+
     def equals(self, other):
         return self.__eq__(other)
 
@@ -30,8 +41,17 @@ class Side(object):
     def contains_element(self, element):
         return element in self.__vars
 
+    def __contains_as_type(self, type_var):
+        return any([var.is_as_type(type_var) for var in self.__vars])
+
     def contains_unknown(self):
-        return any([var.is_unknown() for var in self.__vars])
+        return self.__contains_as_type(TypeVariable.UNKNOWN)
+
+    def contains_output(self):
+        return self.__contains_as_type(TypeVariable.OUTPUT)
+
+    def contains_intput(self):
+        return self.__contains_as_type(TypeVariable.INPUT)
 
     def is_trivial(self):
         return all(map(lambda x: not x.is_unknown(), self.__vars))
@@ -39,31 +59,29 @@ class Side(object):
     def is_empty(self):
         return len(self.__vars) == 0
 
-    def copy_with_cond(self, conditions):
-        new_vars = []
-        for element in self.__vars:
-            for condition in conditions:
-                if condition.get_left_side().contains_element(element):
-                    break
-            else:
-                new_vars.append(element)
-
-        return Side(*new_vars)
-
     def get_vars(self):
         return self.__vars
 
-    def find_the_latest_unknown(self):
-        if not self.contains_unknown():
-            raise Exception("No one unknown Variable in Side")
+    def __find_the_latest(self, type_var):
+        if not self.__contains_as_type(type_var):
+            raise SideException("No one %s Variable in Side" % str(type_var))
         max_var = None
         for var in self.__vars:
-            if var.is_unknown():
+            if var.is_as_type(type_var):
                 if max_var is None or var > max_var:
                     max_var = var
 
         assert max_var is not None
         return max_var
+
+    def find_the_latest_unknown(self):
+        return self.__find_the_latest(TypeVariable.UNKNOWN)
+
+    def find_the_latest_output(self):
+        return self.__find_the_latest(TypeVariable.OUTPUT)
+
+    def find_the_latest_input(self):
+        return self.__find_the_latest(TypeVariable.INPUT)
 
     def has_only_one_unknown(self):
         return len(self.__vars) == 1 and self.__vars[0].is_unknown()

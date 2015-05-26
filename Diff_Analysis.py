@@ -5,6 +5,7 @@ from transition import Transition
 from transition import SystemTransition
 #from conditions import Condition
 from conditions import CommonConditions
+from conditions import CustomConditions
 
 
 a1 = Variable(TypeVariable.INPUT)
@@ -36,10 +37,22 @@ print com_cond.generate_conditions()
 
 for index in xrange(com_cond.get_amount_conditions()):
     cond = com_cond.get_common_cond(index)
+    print "=" * 50 + "start" + "=" * 50
     print "Condition: %s" % "; ".join(map(str, cond))
     print "complem cond => %s" % "; ".join(
         map(str, com_cond.get_complem_com_cond(index))
     )
-    new_system = system.copy_with_cond(cond)
-    print "got next system: "
-    print str(new_system) + "\n\n"
+    new_system = system.copy()
+    print "got next system: \n", new_system
+    new_system.apply_conditions(cond)
+    print "after apply conditions: \n", new_system
+    custom_cond = CustomConditions()
+    while new_system.has_condition():
+        print "-"*20 + "iteration start" + "-"*20
+        new_system.analyse_and_set_custom_conditions(custom_cond)
+        print "after system analyse: \n", new_system
+        print "all custom conditions: ",  custom_cond
+        new_system.apply_custom_conditions(custom_cond)
+        print "after apply custom conditions: \n", new_system
+        print "-"*20 + "iteration end" + "-"*20
+    print "=" * 50 + "end" + "=" * 50
