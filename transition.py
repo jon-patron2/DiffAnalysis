@@ -35,6 +35,9 @@ class Transition(object):
     def has_empty_side(self):
         return self.__left.is_empty() or self.__right.is_empty()
 
+    def has_both_empty_side(self):
+        return self.__left.is_empty() and self.__right.is_empty()
+
     def get_left_side(self):
         return self.__left
 
@@ -57,7 +60,7 @@ class Transition(object):
             raise Exception("Can not make condition with non zero side")
         try:
             latest_unknown = non_zero_side.find_the_latest_unknown()
-            print "latest_unknown = ", str(latest_unknown)
+            #print "latest_unknown = ", str(latest_unknown)
             non_zero_side.pop_variable(latest_unknown)
             state = get_state_for_side(non_zero_side)
             return Condition(Side(latest_unknown), non_zero_side, state)
@@ -102,13 +105,19 @@ class SystemTransition(object):
 
     def analyse_and_set_custom_conditions(self, custom_cond):
         null_trans = []
+        rm = []
         for transition in self.__transitions:
-            if transition.has_empty_side():
-                print "emty == ", transition
+            if transition.has_both_empty_side():
+                #print "will rm == ", transition
+                rm.append(transition)
+            elif transition.has_empty_side():
+                #print "emty == ", transition
                 null_trans.append(transition)
 
         for transition in null_trans:
             self.__transitions.remove(transition)
+
+        map(self.__transitions.remove, rm)
 
         for trans in null_trans:
             custom_cond.append_condition(trans.make_condition())
@@ -116,6 +125,11 @@ class SystemTransition(object):
     def apply_custom_conditions(self, custom_conditions):
         for index in xrange(len(custom_conditions) - 1, -1, -1):
             condition = custom_conditions.get_condition(index)
+            self.apply_condition(condition)
+
+    def apply_common_condition(self, common_condition):
+        zero_conds = common_condition.get_zero_condition()
+        for condition in zero_conds:
             self.apply_condition(condition)
 
     def has_condition(self):

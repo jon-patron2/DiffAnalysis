@@ -31,28 +31,45 @@ t6 = Transition(Side(b3), Side(g1, g2, g3))
 system = SystemTransition(t1, t2, t3, t4, t5, t6)
 print "Basic system is: \n" + str(system) + "\n\n"
 
-com_cond = CommonConditions(a1, a2, a3)
-print "generating ..."
-print com_cond.generate_conditions()
+print "Creating common conditions..."
+input_conditions = CommonConditions(a1, a2, a3)
+output_conditions = CommonConditions(g1, g2, g3)
 
-for index in xrange(com_cond.get_amount_conditions()):
-    cond = com_cond.get_common_cond(index)
-    print "=" * 50 + "start" + "=" * 50
-    print "Condition: %s" % "; ".join(map(str, cond))
-    print "complem cond => %s" % "; ".join(
-        map(str, com_cond.get_complem_com_cond(index))
-    )
-    new_system = system.copy()
-    print "got next system: \n", new_system
-    new_system.apply_conditions(cond)
-    print "after apply conditions: \n", new_system
-    custom_cond = CustomConditions()
-    while new_system.has_condition():
-        print "-"*20 + "iteration start" + "-"*20
-        new_system.analyse_and_set_custom_conditions(custom_cond)
-        print "after system analyse: \n", new_system
+print "generating ..."
+print "input conditions... " + input_conditions.generate_conditions()
+print "output conditions... " + output_conditions.generate_conditions()
+
+amount_conditions = len(input_conditions)
+assert amount_conditions == len(output_conditions)
+print "Amount conditions is %d" % amount_conditions
+
+case = 1
+for input_index in xrange(amount_conditions):
+    for output_index in xrange(amount_conditions):
+
+        in_cond = input_conditions.get_condition(input_index)
+        out_cond = output_conditions.get_condition(output_index)
+
+        print "=" * 50 + "start" + "=" * 50
+        print "case is %d" % case
+        case += 1
+        print "Input condition ", str(in_cond)
+        print "Output condition ", str(out_cond)
+
+        new_system = system.copy()
+        #print "got next system: \n", new_system
+        new_system.apply_common_condition(in_cond)
+        new_system.apply_common_condition(out_cond)
+        #print "after apply conditions: \n", new_system
+        custom_cond = CustomConditions()
+        while new_system.has_condition():
+            #print "-"*20 + "iteration start" + "-"*20
+            new_system.analyse_and_set_custom_conditions(custom_cond)
+            #print "after system analyse: \n", new_system
+            #print "all custom conditions: ",  custom_cond
+            new_system.apply_custom_conditions(custom_cond)
+            #print "after apply custom conditions: \n", new_system
+            #print "-"*20 + "iteration end" + "-"*20
         print "all custom conditions: ",  custom_cond
-        new_system.apply_custom_conditions(custom_cond)
-        print "after apply custom conditions: \n", new_system
-        print "-"*20 + "iteration end" + "-"*20
-    print "=" * 50 + "end" + "=" * 50
+        print "after applying conditions: \n", new_system
+        print "=" * 50 + "end" + "=" * 50
