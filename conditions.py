@@ -62,6 +62,15 @@ class Condition(object):
     def set_state(self, state):
         self.__state = state
 
+    def is_contradiction(self, other):
+        assert isinstance(other, Condition)
+        if self.__left_side == other.__left_side:
+            sum_state = self.__state.value + other.__state.value
+            #sum of state IS_ZERO and IS_NOT_ZERO = 1
+            if sum_state == 1:
+                return True
+        return False
+
     @staticmethod
     def create_from_transaction(trans):
         assert trans.has_empty_side()
@@ -86,12 +95,14 @@ class Condition(object):
 class CommonCondition(object):
     def __init__(self, zero_cond, non_zero_cond):
         assert isinstance(zero_cond, list) and isinstance(non_zero_cond, list)
-        self.__zero_cond  = zero_cond
+        self.__zero_cond = zero_cond
         self.__non_zero_cond = non_zero_cond
 
     def __str__(self):
-        str_cc = "{\n\tZero condition: %s" % "; ".join(map(str, self.__zero_cond))
-        str_cc += "\n\tNon zero condition: %s\n}" % "; ".join(map(str, self.__non_zero_cond))
+        z_str = "; ".join(map(str, self.__zero_cond))
+        nz_str = "; ".join(map(str, self.__non_zero_cond))
+        str_cc = "{\n\tZero condition: %s" % z_str
+        str_cc += "\n\tNon zero condition: %s\n}" % nz_str
         return str_cc
 
     def append_zero_condition(self, condition):
@@ -108,7 +119,7 @@ class CommonCondition(object):
         return tuple(self.__zero_cond)
 
     def get_non_zero_condition(self):
-        return tuple(self.__non_zero_cond)        
+        return tuple(self.__non_zero_cond)
 
 
 class CommonConditions(object):
@@ -198,13 +209,18 @@ class CustomConditions(object):
     def append_condition(self, condition):
         print "append cond = ", str(condition)
         left_side = condition.get_left_side()
-        assert len(left_side) == 1
-        #print "!!!before cond { " + "\n".join(map(str, self.__conditions)) + "\n}"
+        #assert len(left_side) == 1
+        #print "!!!before cond { "+"\n".join(map(str, self.__conditions))+"\n}"
+        if condition.get_state() == StateConditions.IS_NOT_ZERO:
+            self.__conditions.append(condition)
+            return
+
         for cond in self.__conditions:
             right = cond.get_right_side()
             if right.contains(left_side):
                 right.replace_in_side(left_side, condition.get_right_side())
-                if len(right) == 0:
+                if len(right) == 0 and (
+                        cond.get_state() != StateConditions.IS_NOT_ZERO):
                     cond.set_state(StateConditions.IS_ZERO)
         self.__conditions.append(condition)
 
@@ -215,9 +231,23 @@ class CustomConditions(object):
                 if cond1 != cond2 and right2.contains(left1):
                     right2.replace_in_side(left1, cond1.get_right_side())
 
-                    if len(right2) == 0:
+                    if len(right2) == 0 and (
+                            cond2.get_state() != StateConditions.IS_NOT_ZERO):
                         cond2.set_state(StateConditions.IS_ZERO)
 
     def get_condition(self, index):
         assert index <= len(self.__conditions)
         return self.__conditions[index]
+
+    def exist_contradiction(self, *common_conditions):
+        for com_cond in common_conditions:
+            assert isinstance(com_cond, CommonCondition)
+
+            nz_z_c = list(com_cond.get_non_zero_condition())
+            nz_z_c.extend(com_cond.get_zero_condition())
+
+            for self_cond in self.__conditions:
+                for c in nz_z_c:
+                    if c.is_contradiction(self_cond):
+                        return True
+        return False

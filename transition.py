@@ -11,9 +11,17 @@ class Transition(object):
         assert isinstance(left_side, Side) and isinstance(right_side, Side)
         self.__left = left_side
         self.__right = right_side
+        #test property, need to review
+        self.__is_simple = False
 
     def __str__(self):
         return "{} ---> {}".format(str(self.__left), str(self.__right))
+
+    def set_simple(self):
+        self.__is_simple = True
+
+    def get_simple(self):
+        return self.__is_simple
 
     def check_triviality(self):
         return self.__left.is_trivial() and self.__right.is_trivial()
@@ -134,3 +142,33 @@ class SystemTransition(object):
 
     def has_condition(self):
         return any([tr.has_empty_side() for tr in self.__transitions])
+
+    def do_fast_estimation(self, custom_cond, common_in, common_out):
+        nz_c = list(common_in.get_non_zero_condition())
+        nz_c.extend(common_out.get_non_zero_condition())
+        nz_sides = [cond.get_left_side() for cond in nz_c]
+
+        count_simple = 0
+        for trans in self.__transitions:
+            tr_left = trans.get_left_side()
+            tr_right = trans.get_right_side()
+
+            if tr_left in nz_sides and tr_right not in nz_sides:
+                custom_cond.append_condition(
+                    Condition(tr_right, Side(), StateConditions.IS_NOT_ZERO))
+                if tr_right.has_only_one_unknown():
+                    trans.set_simple()
+                    count_simple += 1
+            elif tr_left not in nz_sides and tr_right in nz_sides:
+                custom_cond.append_condition(
+                    Condition(tr_left, Side(), StateConditions.IS_NOT_ZERO))
+                if tr_left.has_only_one_unknown():
+                    trans.set_simple()
+                    count_simple += 1
+
+            if not tr_left.contains_unknown() and (
+                    not tr_right.contains_unknown()):
+                trans.set_simple()
+                count_simple += 1
+
+        return count_simple == len(self.__transitions)

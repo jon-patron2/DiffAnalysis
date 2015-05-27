@@ -44,6 +44,8 @@ assert amount_conditions == len(output_conditions)
 print "Amount conditions is %d" % amount_conditions
 
 case = 1
+fails = 0
+estimated = 0
 for input_index in xrange(amount_conditions):
     for output_index in xrange(amount_conditions):
 
@@ -70,6 +72,17 @@ for input_index in xrange(amount_conditions):
             new_system.apply_custom_conditions(custom_cond)
             #print "after apply custom conditions: \n", new_system
             #print "-"*20 + "iteration end" + "-"*20
+        if custom_cond.exist_contradiction(in_cond, out_cond):
+            print "New system has contradiction conditions."
+            print "FAIL SYSTEM!!!!"
+            fails += 1
+        elif new_system.do_fast_estimation(custom_cond, in_cond, out_cond):
+            print "CAN BE ESTIMATED!!!"
+            estimated += 1
+
         print "all custom conditions: ",  custom_cond
         print "after applying conditions: \n", new_system
         print "=" * 50 + "end" + "=" * 50
+
+print "Total fails is %d" % fails
+print "Total estimated is %d" % estimated
