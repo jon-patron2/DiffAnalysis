@@ -1,6 +1,7 @@
 from enum import Enum
 from variable import Variable
 from side import Side
+from side import SideException
 
 
 class StateConditions(Enum):
@@ -23,8 +24,7 @@ class Condition(object):
         """
         super(Condition, self).__init__()
         is_not_sum = (
-            state == StateConditions.IS_ZERO or
-            state == StateConditions.IS_NOT_ZERO
+            state == StateConditions.IS_ZERO
         )
         if len(right_side) > 0 and is_not_sum:
             raise Exception("Bad values in arguments: "
@@ -45,8 +45,8 @@ class Condition(object):
             assert len(self.__right_side) == 0
             return str(self.__left_side) + " = 0"
         elif self.__state == StateConditions.IS_NOT_ZERO:
-            assert len(self.__right_side) == 0
-            return str(self.__left_side) + " != 0"
+            rs = "0" if len(self.__right_side) == 0 else str(self.__right_side)
+            return "%s != %s " % (str(self.__left_side), rs)
         else:
             return str(self.__left_side) + " = " + str(self.__right_side)
 
@@ -66,30 +66,40 @@ class Condition(object):
         assert isinstance(other, Condition)
         if self.__left_side == other.__left_side:
             sum_state = self.__state.value + other.__state.value
-            #sum of state IS_ZERO and IS_NOT_ZERO = 1
+            # sum of state IS_ZERO and IS_NOT_ZERO = 1
             if sum_state == 1:
                 return True
         return False
 
     @staticmethod
-    def create_from_transaction(trans):
-        assert trans.has_empty_side()
-        side = None
-        if trans.get_left_side().is_empty():
-            side = trans.get_right_side()
-        else:
-            side = trans.get_left_side()
+    def create_zero_condition(side):
+        assert isinstance(side, Side) and len(side) > 0
+        if len(side) == 1:
+            return Condition(side, Side(), StateConditions.IS_ZERO)
 
-        unknown_part = []
-        known_part = []
-        varibs = side.get_vars()
-        for var in varibs:
-            if var.is_unknown():
-                unknown_part.append(var)
-            else:
-                known_part.append(var)
-        return Condition(
-            Side(*unknown_part), Side(*known_part), StateConditions.IS_SUMM)
+        state = StateConditions.IS_EQUAL
+        try:
+            lat_unknown = side.find_the_latest_unknown()
+            side.pop_variable(lat_unknown)
+            return Condition(Side(lat_unknown), side, state)
+        except SideException:
+            try:
+                lat_output = side.find_the_latest_output()
+                side.pop_variable(lat_output)
+                return Condition(Side(lat_output), side, state)
+            except SideException:
+                lat_input = side.find_the_latest_input()
+                side.pop_variable(lat_input)
+                return Condition(Side(lat_input), side, state)
+
+    @staticmethod
+    def create_non_zero_condition(side):
+        assert isinstance(side, Side) and len(side) > 0
+        if side.contains_unknown():
+            unknowns = side.pop_all_unknowns()
+            return Condition(Side(*unknowns), side, StateConditions.IS_NOT_ZERO)
+        else:
+            return Condition(side, Side(), StateConditions.IS_NOT_ZERO)
 
 
 class CommonCondition(object):
@@ -209,8 +219,8 @@ class CustomConditions(object):
     def append_condition(self, condition):
         print "append cond = ", str(condition)
         left_side = condition.get_left_side()
-        #assert len(left_side) == 1
-        #print "!!!before cond { "+"\n".join(map(str, self.__conditions))+"\n}"
+        # assert len(left_side) == 1
+        # print "!!!before cond { "+"\n".join(map(str, self.__conditions))+"\n}"
         if condition.get_state() == StateConditions.IS_NOT_ZERO:
             self.__conditions.append(condition)
             return

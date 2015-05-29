@@ -3,7 +3,7 @@ from variable import Variable
 from side import Side
 from transition import Transition
 from transition import SystemTransition
-#from conditions import Condition
+# from conditions import Condition
 from conditions import CommonConditions
 from conditions import CustomConditions
 
@@ -59,19 +59,19 @@ for input_index in xrange(amount_conditions):
         print "Output condition ", str(out_cond)
 
         new_system = system.copy()
-        #print "got next system: \n", new_system
+        # print "got next system: \n", new_system
         new_system.apply_common_condition(in_cond)
         new_system.apply_common_condition(out_cond)
-        #print "after apply conditions: \n", new_system
+        # print "after apply conditions: \n", new_system
         custom_cond = CustomConditions()
         while new_system.has_condition():
-            #print "-"*20 + "iteration start" + "-"*20
+            # print "-"*20 + "iteration start" + "-"*20
             new_system.analyse_and_set_custom_conditions(custom_cond)
-            #print "after system analyse: \n", new_system
-            #print "all custom conditions: ",  custom_cond
+            # print "after system analyse: \n", new_system
+            # print "all custom conditions: ",  custom_cond
             new_system.apply_custom_conditions(custom_cond)
-            #print "after apply custom conditions: \n", new_system
-            #print "-"*20 + "iteration end" + "-"*20
+            # print "after apply custom conditions: \n", new_system
+            # print "-"*20 + "iteration end" + "-"*20
         if custom_cond.exist_contradiction(in_cond, out_cond):
             print "New system has contradiction conditions."
             print "FAIL SYSTEM!!!!"

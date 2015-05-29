@@ -64,5 +64,5 @@ class Variable(object):
 
     def __str__(self):
         type_obj = str(self.__type)
-        #return "%s var: %d (%s)" % (type_obj, self.__id, hex(id(self)))
+        # return "%s var: %d (%s)" % (type_obj, self.__id, hex(id(self)))
         return "%s var: %d " % (type_obj, self.__id)

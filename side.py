@@ -92,11 +92,25 @@ class Side(object):
         self.__vars.remove(var)
         assert len(self.__vars) == length - 1
 
+    def __pop_all_by_type(self, type_var):
+        elements = []
+        for elem in self.__vars:
+            if elem.is_as_type(type_var):
+                elements.append(elem)
+
+        for elem in elements:
+            self.__vars.remove(elem)
+
+        return elements
+
+    def pop_all_unknowns(self):
+        return self.__pop_all_by_type(TypeVariable.UNKNOWN)
+
     def replace_in_side(self, would_repl, replacement):
         """ all variables in 'would_repl' will be replaced to 'replacement' """
         assert isinstance(would_repl, Side) and isinstance(replacement, Side)
         assert self.contains(would_repl)
-        #remove all elements from would_repl in self
+        # remove all elements from would_repl in self
         for var in would_repl.__vars:
             self.pop_variable(var)
 

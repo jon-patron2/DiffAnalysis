@@ -54,35 +54,15 @@ class Transition(object):
 
     def make_condition(self):
 
-        def get_state_for_side(side):
-            if side.is_empty():
-                return StateConditions.IS_ZERO
-            return StateConditions.IS_EQUAL
-
         non_zero_side = None
         if self.__left.is_empty() and not self.__right.is_empty():
             non_zero_side = self.__right
         elif not self.__left.is_empty() and self.__right.is_empty():
             non_zero_side = self.__left
         else:
-            raise Exception("Can not make condition with non zero side")
-        try:
-            latest_unknown = non_zero_side.find_the_latest_unknown()
-            #print "latest_unknown = ", str(latest_unknown)
-            non_zero_side.pop_variable(latest_unknown)
-            state = get_state_for_side(non_zero_side)
-            return Condition(Side(latest_unknown), non_zero_side, state)
-        except SideException:
-            try:
-                lat_output = non_zero_side.find_the_latest_output()
-                non_zero_side.pop_variable(lat_output)
-                state = get_state_for_side(non_zero_side)
-                return Condition(Side(lat_output), non_zero_side, state)
-            except SideException:
-                lat_input = non_zero_side.find_the_latest_input()
-                non_zero_side.pop_variable(lat_input)
-                state = get_state_for_side(non_zero_side)
-                return Condition(Side(lat_input), non_zero_side, state)
+            raise Exception("One side must be not empty in transition")
+
+        return Condition.create_zero_condition(non_zero_side)
 
 
 class SystemTransition(object):
@@ -116,10 +96,10 @@ class SystemTransition(object):
         rm = []
         for transition in self.__transitions:
             if transition.has_both_empty_side():
-                #print "will rm == ", transition
+                # print "will rm == ", transition
                 rm.append(transition)
             elif transition.has_empty_side():
-                #print "emty == ", transition
+                # print "emty == ", transition
                 null_trans.append(transition)
 
         for transition in null_trans:
@@ -153,15 +133,20 @@ class SystemTransition(object):
             tr_left = trans.get_left_side()
             tr_right = trans.get_right_side()
 
+            print "Let see on %s" % str(trans)
+            print "List of non zero sides {\n\t%s\n}" % "\n\t".join(map(str, nz_sides))
+
             if tr_left in nz_sides and tr_right not in nz_sides:
                 custom_cond.append_condition(
-                    Condition(tr_right, Side(), StateConditions.IS_NOT_ZERO))
+                    Condition.create_non_zero_condition(tr_right.copy()))
+                nz_sides.append(tr_right)
                 if tr_right.has_only_one_unknown():
                     trans.set_simple()
                     count_simple += 1
             elif tr_left not in nz_sides and tr_right in nz_sides:
                 custom_cond.append_condition(
-                    Condition(tr_left, Side(), StateConditions.IS_NOT_ZERO))
+                    Condition.create_non_zero_condition(tr_left.copy()))
+                nz_sides.append(tr_left)
                 if tr_left.has_only_one_unknown():
                     trans.set_simple()
                     count_simple += 1
