@@ -62,6 +62,9 @@ class Variable(object):
     def reset(self):
         self.__is_zero = False
 
+    def get_id(self):
+        return self.__id
+
     def __str__(self):
         type_obj = str(self.__type)
         # return "%s var: %d (%s)" % (type_obj, self.__id, hex(id(self)))

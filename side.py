@@ -13,8 +13,8 @@ class Side(object):
 
     def __eq__(self, other):
         if len(self.__vars) == len(other.__vars):
-            for x in xrange(len(self.__vars)):
-                if self.__vars[x] != other.__vars[x]:
+            for var in self.__vars:
+                if var not in other.__vars:
                     return False
             return True
         return False
@@ -61,6 +61,13 @@ class Side(object):
 
     def get_vars(self):
         return self.__vars
+
+    def get_unknowns_id(self):
+        ids = []
+        for var in self.__vars:
+            if var.is_unknown():
+                ids.append(var.get_id())
+        return ids
 
     def __find_the_latest(self, type_var):
         if not self.__contains_as_type(type_var):

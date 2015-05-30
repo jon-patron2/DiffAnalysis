@@ -6,7 +6,7 @@ from transition import SystemTransition
 # from conditions import Condition
 from conditions import CommonConditions
 from conditions import CustomConditions
-
+from transition import results
 
 a1 = Variable(TypeVariable.INPUT)
 a2 = Variable(TypeVariable.INPUT)
@@ -83,6 +83,12 @@ for input_index in xrange(amount_conditions):
         print "all custom conditions: ",  custom_cond
         print "after applying conditions: \n", new_system
         print "=" * 50 + "end" + "=" * 50
+
+        SystemTransition.estimate(new_system, custom_cond, in_cond, out_cond, [], False)
+
+        print "=" * 150
+        print str(results)
+        exit(0)
 
 print "Total fails is %d" % fails
 print "Total estimated is %d" % estimated

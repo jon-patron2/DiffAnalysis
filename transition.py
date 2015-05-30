@@ -1,9 +1,11 @@
-#from variable import Variable
+# from variable import Variable
 from side import Side
 from side import SideException
 from conditions import Condition
 from conditions import StateConditions
 from conditions import CustomConditions
+
+results = []
 
 
 class Transition(object):
@@ -11,7 +13,7 @@ class Transition(object):
         assert isinstance(left_side, Side) and isinstance(right_side, Side)
         self.__left = left_side
         self.__right = right_side
-        #test property, need to review
+        # test property, need to review
         self.__is_simple = False
 
     def __str__(self):
@@ -30,6 +32,9 @@ class Transition(object):
         return Transition(self.__left.copy(), self.__right.copy())
 
     def apply_condition(self, condition):
+        if condition.get_state() == StateConditions.IS_NOT_ZERO:
+            return
+
         condition_left = condition.get_left_side()
         condition_right = condition.get_right_side()
         if self.__left.contains(condition_left) and (
@@ -77,6 +82,9 @@ class SystemTransition(object):
             system += "%d) %s\n" % (ind + 1, str(self.__transitions[ind]))
         return system
 
+    def get_transitions(self):
+        return self.__transitions
+
     def copy(self):
         transitions = [tr.copy() for tr in self.__transitions]
         return SystemTransition(*transitions)
@@ -84,7 +92,9 @@ class SystemTransition(object):
     def apply_condition(self, condition):
         assert isinstance(condition, Condition)
         for transition in self.__transitions:
+            # print "B transition %s ||| condition %s" % (str(transition), str(condition))
             transition.apply_condition(condition)
+            # print "A transition %s ||| condition %s" % (str(transition), str(condition))
 
     def apply_conditions(self, conditions):
         assert isinstance(conditions, list)
@@ -123,6 +133,17 @@ class SystemTransition(object):
     def has_condition(self):
         return any([tr.has_empty_side() for tr in self.__transitions])
 
+    def count_unknown_vars(self):
+        unknowns = []
+        for trans in self.__transitions:
+            unknowns.extend(trans.get_left_side().get_unknowns_id())
+            unknowns.extend(trans.get_right_side().get_unknowns_id())
+            print "[count_unknown_vars] transition = %s " % str(trans)
+            print "[count_unknown_vars] %s" % str(unknowns)
+        s = set(unknowns)
+        print "[count_unknown_vars] len(%s) = %d" % (str(s), len(s))
+        return len(s)
+
     def do_fast_estimation(self, custom_cond, common_in, common_out):
         nz_c = list(common_in.get_non_zero_condition())
         nz_c.extend(common_out.get_non_zero_condition())
@@ -133,8 +154,8 @@ class SystemTransition(object):
             tr_left = trans.get_left_side()
             tr_right = trans.get_right_side()
 
-            print "Let see on %s" % str(trans)
-            print "List of non zero sides {\n\t%s\n}" % "\n\t".join(map(str, nz_sides))
+            # print "Let see on %s" % str(trans)
+            # print "List of non zero sides {\n\t%s\n}" % "\n\t".join(map(str, nz_sides))
 
             if tr_left in nz_sides and tr_right not in nz_sides:
                 custom_cond.append_condition(
@@ -157,3 +178,148 @@ class SystemTransition(object):
                 count_simple += 1
 
         return count_simple == len(self.__transitions)
+
+    @staticmethod
+    def estimate(system, custom_cond, common_in, common_out, res_list, call_as_fork):
+        global results
+        count_triviality = 0
+        count_with_unknowns = 0
+        print "#"*50 + "start estimation" + "#"*50
+        print "This call of function is %s FORK" % ("" if call_as_fork else "NOT")
+        print "Start estimate function with "
+        print "system \n%s" % str(system)
+        print "and custom_conditions %s\n" % str(custom_cond)
+
+        if custom_cond.exist_contradiction(common_in, common_out):
+            print "ESTIMATE: CONDITIONS HAVE CONTADICTIONS"
+            print "common_in ", str(common_in)
+            print "common_out ", str(common_out)
+            return None
+
+        transitions = system.get_transitions()
+
+        for x in xrange(len(transitions) - 1, -1, -1):
+            transition = transitions[x]
+            print "\nAnalyse transition ", str(transition)
+            left = transition.get_left_side()
+            right = transition.get_right_side()
+            assert len(left) > 0 and len(right) > 0
+
+            # 2 sides does not have unknowns
+            if not left.contains_unknown() and not right.contains_unknown():
+                count_triviality += 1
+                print "Transition is triviality"
+                continue
+
+            is_left_non_zero = custom_cond.is_side_non_zero(left, common_in, common_out)
+            is_right_non_zero = custom_cond.is_side_non_zero(right, common_in, common_out)
+
+            if is_left_non_zero and is_right_non_zero:
+                print "Both sides of transition are NOT ZERO"
+                # do nothing, just increase counter
+                count_with_unknowns += 1
+                continue
+            elif is_left_non_zero and not is_right_non_zero:
+                print "Left side '%s' is NON ZERO. Rigth is undefined" % str(left)
+                # fixed left side: not fork
+                nz = Condition.create_non_zero_condition(right.copy())
+                print "Create non zero condition " + str(nz)
+                custom_cond.append_condition(nz)
+                print "Updated custom condition is " + str(custom_cond)
+                count_with_unknowns += 1
+                continue
+            elif not is_left_non_zero and is_right_non_zero:
+                print "Right side '%s' is NON ZERO. Left undefined" % str(right)
+                # fixed right side: not fork
+                nz = Condition.create_non_zero_condition(left.copy())
+                print "Create non zero condition " + str(nz)
+                custom_cond.append_condition(nz)
+                print "Updated custom condition is " + str(custom_cond)
+                continue
+            else:
+                # both sides not zero
+                # check that they does not contain unkwowns
+                if not left.contains_unknown() or not right.contains_unknown():
+                    print 'Left or right sides does not contains UNKNOWN'
+                    # need divide in two cases: zero and not zero
+                    # zero case
+                    print "Creating new components for zero case"
+                    new_custom_c = custom_cond.copy()
+                    left_zc = Condition.create_zero_condition(left.copy())
+                    right_zc = Condition.create_zero_condition(right.copy())
+                    print "New zero conditions %s and %s" % (str(left_zc), str(right_zc))
+                    new_custom_c.append_condition(left_zc)
+                    new_custom_c.append_condition(right_zc)
+                    print "New custom conditions" + str(new_custom_c)
+                    new_system = system.copy()
+                    print "New system copy \n" + str(new_system)
+                    new_system.apply_custom_conditions(new_custom_c)
+                    print "New system apply_custom_conditions \n" + str(new_system)
+                    new_system.analyse_and_set_custom_conditions(new_custom_c)
+                    print "New system \n" + str(new_system)
+                    print "Updated custom conditions " + str(new_custom_c)
+                    print "Goto recursion"
+                    SystemTransition.estimate(
+                        new_system, new_custom_c, common_in, common_out, [], False)
+
+                    # none zero case
+                    left_nzc = Condition.create_non_zero_condition(left.copy())
+                    right_nzc = Condition.create_non_zero_condition(right.copy())
+                    print "New non zero conditions %s and %s" % (str(left_nzc), str(right_nzc))
+                    custom_cond.append_condition(left_nzc)
+                    custom_cond.append_condition(right_nzc)
+                    print "Updated custom conditions " + str(custom_cond)
+                    count_with_unknowns += 1
+                    continue
+                else:
+                    print "Left and right contains UNKNOWN and sides in undefined"
+                    print "IT IS FOOORKKK!!!!!"
+                    print "Creating new components for zero case"
+                    new_custom_c = custom_cond.copy()
+                    left_zc = Condition.create_zero_condition(left.copy())
+                    right_zc = Condition.create_zero_condition(right.copy())
+                    print "New zero conditions %s and %s" % (str(left_zc), str(right_zc))
+                    new_custom_c.append_condition(left_zc)
+                    new_custom_c.append_condition(right_zc)
+                    print "New custom conditions " + str(new_custom_c)
+                    new_system = system.copy()
+                    new_system.apply_custom_conditions(new_custom_c)
+                    new_system.analyse_and_set_custom_conditions(new_custom_c)
+                    print "New system " + str(new_system)
+                    print "Updated custom conditions " + str(new_custom_c)
+                    print "Goto recursion"
+                    SystemTransition.estimate(
+                        new_system, new_custom_c, common_in, common_out, res_list, True)
+
+                    # none zero case
+                    left_nzc = Condition.create_non_zero_condition(left.copy())
+                    right_nzc = Condition.create_non_zero_condition(right.copy())
+                    print "New non zero conditions %s and %s" % (str(left_nzc), str(right_nzc))
+                    custom_cond.append_condition(left_nzc)
+                    custom_cond.append_condition(right_nzc)
+                    print "Updated custom conditions " + str(custom_cond)
+                    count_with_unknowns += 1
+                    continue
+
+        dct = {
+            "system": system,
+            "custom_conditions": custom_cond,
+            "common_in": common_in,
+            "common_out": common_out,
+            "count_unknown_vars": system.count_unknown_vars(),
+            "transition_triviality": count_triviality,
+            "transition_with_unknowns": count_with_unknowns
+        }
+        print "===>>>BEFORE END<<<==="
+
+        for key, value in dct.items():
+            print "%s = %s" % (key, str(value))
+        print "===>>>BEFORE END<<<==="
+        res_list.append(dct)
+        if not call_as_fork:
+            results.append(res_list)
+            print "Not fork end"
+        else:
+            print "Fork end"
+
+        print "#"*50 + "end estimation" + "#"*50
