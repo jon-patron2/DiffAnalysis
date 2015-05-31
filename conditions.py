@@ -4,6 +4,10 @@ from side import Side
 from side import SideException
 
 
+class ConditionExeption(Exception):
+    pass
+
+
 class StateConditions(Enum):
     IS_ZERO = 0
     IS_NOT_ZERO = 1
@@ -52,11 +56,13 @@ class Condition(object):
             return str(self.__left_side) + " = " + str(self.__right_side)
 
     def check_condition(self):
-        assert len(self.__left_side) > 0
+        if len(self.__left_side) == 0 and len(self.__right_side) == 0 and (
+                self.__state == StateConditions.IS_NOT_ZERO):
+            raise ConditionExeption("Bad condition")
 
     def swap_sides(self):
         print "[swap_sides] ", str(self)
-        assert len(self.__left_side) == 0 and len(self.__right_side) > 0
+        # assert len(self.__left_side) == 0 and len(self.__right_side) > 0
         right = self.__right_side
         self.__right_side = self.__left_side
         self.__left_side = right
@@ -242,6 +248,7 @@ class CustomConditions(object):
 
         if condition.get_state() == StateConditions.IS_NOT_ZERO:
             self.__conditions.append(condition)
+            self.__update_conditions()
             return
 
         for cond in self.__conditions:
@@ -257,8 +264,12 @@ class CustomConditions(object):
                     cond.swap_sides()
                     if cond.get_state() != StateConditions.IS_NOT_ZERO:
                         cond.set_state(StateConditions.IS_ZERO)
+            cond.check_condition()
         self.__conditions.append(condition)
 
+        self.__update_conditions()
+
+    def __update_conditions(self):
         for cond1 in self.__conditions:
             if cond1.get_state() == StateConditions.IS_NOT_ZERO:
                 continue
@@ -280,6 +291,7 @@ class CustomConditions(object):
                         cond2.swap_sides()
                         if cond2.get_state() != StateConditions.IS_NOT_ZERO:
                             cond2.set_state(StateConditions.IS_ZERO)
+                cond2.check_condition()
 
     def get_condition(self, index):
         assert index <= len(self.__conditions)
