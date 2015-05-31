@@ -36,9 +36,10 @@ class Transition(object):
 
         condition_left = condition.get_left_side()
         condition_right = condition.get_right_side()
-        if self.__left.contains(condition_left) and (
-                not condition_right.contains_unknown() or
-                len(condition_right) == 1):
+        # if self.__left.contains(condition_left) and (
+        #         not condition_right.contains_unknown() or
+        #         len(condition_right) == 1):
+        if self.__left.contains(condition_left):
             self.__left.replace_in_side(condition_left, condition_right)
 
         if self.__right.contains(condition_left):
@@ -358,7 +359,7 @@ class SystemTransition(object):
             print "%s = %s" % (key, str(value))
         print "===>>>BEFORE END<<<==="
         if was_fail:
-            res_list.append("None")
+            res_list.append("Fail")
         else:
             str_est = "p^%d" % (count_triviality + count_with_unknowns - unknown_vars)
             res_list.append(str_est)

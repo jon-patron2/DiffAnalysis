@@ -41,14 +41,21 @@ b2 = Variable(TypeVariable.UNKNOWN)
 b3 = Variable(TypeVariable.UNKNOWN)
 
 
+# t1 = Transition(Side(a1), Side(a2, a3, b1))
+# t2 = Transition(Side(a2), Side(a3, b1, b2))
+# t3 = Transition(Side(a3), Side(b1, b2, b3))
+# t4 = Transition(Side(b1), Side(b2, b3, g1))
+# t5 = Transition(Side(b2), Side(b3, g1, g2))
+# t6 = Transition(Side(b3), Side(g1, g2, g3))
+
+
 t1 = Transition(Side(a1), Side(a2, a3, b1))
 t2 = Transition(Side(a2), Side(a3, b1, b2))
-t3 = Transition(Side(a3), Side(b1, b2, b3))
-t4 = Transition(Side(b1), Side(b2, b3, g1))
-t5 = Transition(Side(b2), Side(b3, g1, g2))
-t6 = Transition(Side(b3), Side(g1, g2, g3))
+t3 = Transition(Side(a3), Side(b1, b2, g1))
+t4 = Transition(Side(b1), Side(b2, g1, g2))
+t5 = Transition(Side(b2), Side(g1, g2, g3))
 
-system = SystemTransition(t1, t2, t3, t4, t5, t6)
+system = SystemTransition(t1, t2, t3, t4, t5)
 print "Basic system is: \n" + str(system) + "\n\n"
 
 print "Creating common conditions..."
@@ -75,8 +82,12 @@ for input_index in xrange(amount_conditions):
 
         print "=" * 50 + "start" + "=" * 50
         case_results = []
-        print "case is %d" % case
+        print "case is %d" % (case + 1)
         case += 1
+        # if case < 37:
+        #     continue
+        # if case > 37:
+        #     exit(0)
         print "Input condition ", str(in_cond)
         print "Output condition ", str(out_cond)
 
@@ -84,7 +95,7 @@ for input_index in xrange(amount_conditions):
         # print "got next system: \n", new_system
         new_system.apply_common_condition(in_cond)
         new_system.apply_common_condition(out_cond)
-        # print "after apply conditions: \n", new_system
+        print "after apply conditions: \n", new_system
         custom_cond = CustomConditions()
         while new_system.has_condition():
             # print "-"*20 + "iteration start" + "-"*20
