@@ -6,7 +6,27 @@ from transition import SystemTransition
 # from conditions import Condition
 from conditions import CommonConditions
 from conditions import CustomConditions
-from transition import results
+
+
+def get_estimation(est_data):
+    if est_data["fail"]:
+        return "Fail"
+
+    return "p^%d * p^(%d - %d) = p^%d" % (
+        est_data["transition_triviality"],
+        est_data["transition_with_unknowns"],
+        est_data["count_unknown_vars"],
+        est_data["transition_triviality"] +
+        est_data["transition_with_unknowns"] - est_data["count_unknown_vars"]
+    )
+
+
+def print_results(results):
+    for estimations in results:
+        print "\n\n"
+        for est in estimations:
+            print get_estimation(est)
+
 
 a1 = Variable(TypeVariable.INPUT)
 a2 = Variable(TypeVariable.INPUT)
@@ -46,6 +66,7 @@ print "Amount conditions is %d" % amount_conditions
 case = 1
 fails = 0
 estimated = 0
+results = []
 for input_index in xrange(amount_conditions):
     for output_index in xrange(amount_conditions):
 
@@ -53,6 +74,7 @@ for input_index in xrange(amount_conditions):
         out_cond = output_conditions.get_condition(output_index)
 
         print "=" * 50 + "start" + "=" * 50
+        case_results = []
         print "case is %d" % case
         case += 1
         print "Input condition ", str(in_cond)
@@ -76,19 +98,25 @@ for input_index in xrange(amount_conditions):
             print "New system has contradiction conditions."
             print "FAIL SYSTEM!!!!"
             fails += 1
+            case_results.append("Fail")
         elif new_system.do_fast_estimation(custom_cond, in_cond, out_cond):
-            print "CAN BE ESTIMATED!!!"
+            print "CAN BE ESTIMATED  p^%d!!! All primitive transitions" % len(new_system)
             estimated += 1
+            case_results.append("p^%d" % len(new_system))
+        else:
+            print "all custom conditions: ",  custom_cond
+            print "after applying conditions: \n", new_system
+            print "=" * 50 + "end" + "=" * 50
+            SystemTransition.estimate(
+                new_system, custom_cond, in_cond, out_cond, case_results, False)
 
-        print "all custom conditions: ",  custom_cond
-        print "after applying conditions: \n", new_system
-        print "=" * 50 + "end" + "=" * 50
-
-        SystemTransition.estimate(new_system, custom_cond, in_cond, out_cond, [], False)
-
+        print "case res = " + str(case_results)
+        results.append(case_results)
         print "=" * 150
-        print str(results)
-        exit(0)
 
 print "Total fails is %d" % fails
 print "Total estimated is %d" % estimated
+
+print "Total results is "
+for x in xrange(len(results)):
+    print "%d) %s" % (x + 1, str(results[x]))

@@ -6,8 +6,6 @@ from conditions import StateConditions
 from conditions import CustomConditions
 from conditions import ConditionExeption
 
-results = []
-
 
 class Transition(object):
     def __init__(self, left_side, right_side):
@@ -83,6 +81,10 @@ class SystemTransition(object):
             system += "%d) %s\n" % (ind + 1, str(self.__transitions[ind]))
         return system
 
+    def __len__(self):
+        assert all(not tran.has_both_empty_side() for tran in self.__transitions)
+        return len(self.__transitions)
+
     def get_transitions(self):
         return self.__transitions
 
@@ -139,10 +141,10 @@ class SystemTransition(object):
         for trans in self.__transitions:
             unknowns.extend(trans.get_left_side().get_unknowns_id())
             unknowns.extend(trans.get_right_side().get_unknowns_id())
-            print "[count_unknown_vars] transition = %s " % str(trans)
-            print "[count_unknown_vars] %s" % str(unknowns)
+            # print "[count_unknown_vars] transition = %s " % str(trans)
+            # print "[count_unknown_vars] %s" % str(unknowns)
         s = set(unknowns)
-        print "[count_unknown_vars] len(%s) = %d" % (str(s), len(s))
+        # print "[count_unknown_vars] len(%s) = %d" % (str(s), len(s))
         return len(s)
 
     def do_fast_estimation(self, custom_cond, common_in, common_out):
@@ -231,7 +233,7 @@ class SystemTransition(object):
                 try:
                     custom_cond.append_condition(nz)
                 except ConditionExeption:
-                    print "UNEXPECTED CONDITION EXEPTION"
+                    print "#"*30 + "UNEXPECTED CONDITION EXEPTION" + "#"*30
                     SystemTransition.__write_result(
                         system, custom_cond, common_in, common_out, count_triviality,
                         count_with_unknowns, res_list, call_as_fork, True)
@@ -247,7 +249,7 @@ class SystemTransition(object):
                 try:
                     custom_cond.append_condition(nz)
                 except ConditionExeption:
-                    print "UNEXPECTED CONDITION EXEPTION"
+                    print "#"*30 + "UNEXPECTED CONDITION EXEPTION" + "#"*30
                     SystemTransition.__write_result(
                         system, custom_cond, common_in, common_out, count_triviality,
                         count_with_unknowns, res_list, call_as_fork, True)
@@ -256,6 +258,9 @@ class SystemTransition(object):
                 count_with_unknowns += 1
                 continue
             else:
+                new_res_list = []
+                res_list.append(new_res_list)
+                res_list = new_res_list
                 fork = False
                 # both sides not zero
                 # check that they does not contain unkwowns
@@ -267,6 +272,7 @@ class SystemTransition(object):
                     print "Left and right contains UNKNOWN and sides in undefined"
                     print "IT IS FOOORKKK!!!!!"
                     fork = True
+                    res_list.append("fork")
 
                 print "Creating new components for zero case"
                 new_custom_c = custom_cond.copy()
@@ -288,14 +294,14 @@ class SystemTransition(object):
 
                     if not fork:
                         SystemTransition.estimate(
-                            new_system, new_custom_c, common_in, common_out, [], False)
+                            new_system, new_custom_c, common_in, common_out, res_list, False)
                     else:
                         # fork
                         SystemTransition.estimate(
                             new_system, new_custom_c, common_in, common_out, res_list, True)
 
                 except ConditionExeption:
-                    print "Catche ConditionExeption. System FAIL."
+                    print "#"*30 + "Catche ConditionExeption. System FAIL." + "#"*30
                     SystemTransition.__write_result(
                         system, custom_cond, common_in, common_out, count_triviality,
                         count_with_unknowns, res_list, call_as_fork, True)
@@ -310,7 +316,7 @@ class SystemTransition(object):
                     print "Updated custom conditions " + str(custom_cond)
                     count_with_unknowns += 1
                 except ConditionExeption:
-                    print "Catche ConditionExeption. System FAIL."
+                    print "#"*30 + "Catche ConditionExeption. System FAIL." + "#"*30
                     SystemTransition.__write_result(
                         system, custom_cond, common_in, common_out, count_triviality,
                         count_with_unknowns, res_list, call_as_fork, True)
@@ -335,13 +341,13 @@ class SystemTransition(object):
             was_fail
             ):
 
-        global results
+        unknown_vars = system.count_unknown_vars()
         dct = {
             "system": system,
             "custom_conditions": custom_cond,
             "common_in": common_in,
             "common_out": common_out,
-            "count_unknown_vars": system.count_unknown_vars(),
+            "count_unknown_vars": unknown_vars,
             "transition_triviality": count_triviality,
             "transition_with_unknowns": count_with_unknowns,
             "fail": was_fail
@@ -351,9 +357,12 @@ class SystemTransition(object):
         for key, value in dct.items():
             print "%s = %s" % (key, str(value))
         print "===>>>BEFORE END<<<==="
-        res_list.append(dct)
+        if was_fail:
+            res_list.append("None")
+        else:
+            str_est = "p^%d" % (count_triviality + count_with_unknowns - unknown_vars)
+            res_list.append(str_est)
         if not call_as_fork:
-            results.append(res_list)
             print "Not fork end"
         else:
             print "Fork end"
