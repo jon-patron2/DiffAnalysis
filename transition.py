@@ -359,10 +359,27 @@ class SystemTransition(object):
             print "%s = %s" % (key, str(value))
         print "===>>>BEFORE END<<<==="
         if was_fail:
-            res_list.append("Fail")
+            # res_list.append("Fail")
+            pass
         else:
-            str_est = "p^%d" % (count_triviality + count_with_unknowns - unknown_vars)
-            res_list.append(str_est)
+            expo = count_triviality + count_with_unknowns - unknown_vars
+            str_est = "p^%d" % expo
+            if len(res_list) == 0:
+                res_list.append(str_est)
+            else:
+                if res_list[0] == 'fork':
+                    res_list.append(str_est)
+                else:
+                    assert len(res_list) == 1
+                    comp_expo = int(res_list[0][2])
+                    print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
+                    if expo < comp_expo:
+                        res_list[0] = str_est
+                    else:
+                        print "list withou changes"
+                    print "list %s" + str(res_list)
+
+            # res_list.append(str_est)
         if not call_as_fork:
             print "Not fork end"
         else:
