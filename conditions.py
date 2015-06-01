@@ -293,6 +293,18 @@ class CustomConditions(object):
                             cond2.set_state(StateConditions.IS_ZERO)
                 cond2.check_condition()
 
+        rem = []
+        for x in xrange(len(self.__conditions)):
+            cond = self.__conditions[x]
+            if len(cond.get_left_side()) == 0 and (
+                    len(cond.get_right_side()) == 0 and (
+                        cond.get_state() == StateConditions.IS_ZERO)):
+                rem.append(cond)
+        for rm_cond in rem:
+            self.__conditions.remove(rm_cond)
+
+
+
     def get_condition(self, index):
         assert index <= len(self.__conditions)
         return self.__conditions[index]
