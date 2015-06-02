@@ -31,47 +31,38 @@ def print_results(results):
 a1 = Variable(TypeVariable.INPUT)
 a2 = Variable(TypeVariable.INPUT)
 a3 = Variable(TypeVariable.INPUT)
-a4 = Variable(TypeVariable.INPUT)
-a5 = Variable(TypeVariable.INPUT)
+# a4 = Variable(TypeVariable.INPUT)
+# a5 = Variable(TypeVariable.INPUT)
 
 g1 = Variable(TypeVariable.OUTPUT)
 g2 = Variable(TypeVariable.OUTPUT)
 g3 = Variable(TypeVariable.OUTPUT)
-g4 = Variable(TypeVariable.OUTPUT)
-g5 = Variable(TypeVariable.OUTPUT)
+# g4 = Variable(TypeVariable.OUTPUT)
+# g5 = Variable(TypeVariable.OUTPUT)
 
 b1 = Variable(TypeVariable.UNKNOWN)
 b2 = Variable(TypeVariable.UNKNOWN)
 b3 = Variable(TypeVariable.UNKNOWN)
-b4 = Variable(TypeVariable.UNKNOWN)
-b5 = Variable(TypeVariable.UNKNOWN)
-b6 = Variable(TypeVariable.UNKNOWN)
-b7 = Variable(TypeVariable.UNKNOWN)
-b8 = Variable(TypeVariable.UNKNOWN)
+# b4 = Variable(TypeVariable.UNKNOWN)
+# b5 = Variable(TypeVariable.UNKNOWN)
+# b6 = Variable(TypeVariable.UNKNOWN)
+# b7 = Variable(TypeVariable.UNKNOWN)
+# b8 = Variable(TypeVariable.UNKNOWN)
 # b9 = Variable(TypeVariable.UNKNOWN)
 
 
-t1 = Transition(Side(a1), Side(a2, a3, a4, a5, b1))
-t2 = Transition(Side(a2), Side(a3, a4, a5, b1, b2))
-t3 = Transition(Side(a3), Side(a4, a5, b1, b2, b3))
-t4 = Transition(Side(a4), Side(a5, b1, b2, b3, b4))
-t5 = Transition(Side(a5), Side(b1, b2, b3, b4, b5))
-t6 = Transition(Side(b1), Side(b2, b3, b4, b5, b6))
-t7 = Transition(Side(b2), Side(b3, b4, b5, b6, b7))
-t8 = Transition(Side(b3), Side(b4, b5, b6, b7, b8))
-t9 = Transition(Side(b4), Side(b5, b6, b7, b8, g1))
-t10 = Transition(Side(b5), Side(b6, b7, b8, g1, g2))
-t11 = Transition(Side(b6), Side(b7, b8, g1, g2, g3))
-t12 = Transition(Side(b7), Side(b8, g1, g2, g3, g4))
-t13 = Transition(Side(b8), Side(g1, g2, g3, g4, g5))
+t1 = Transition(Side(a1), Side(a2, a3, b1))
+t2 = Transition(Side(a2), Side(a3, b1, g1))
+t3 = Transition(Side(a3), Side(b1, g1, g2))
+t4 = Transition(Side(a3), Side(g1, g2, g3))
 
 
-system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13)
+system = SystemTransition(t1, t2, t3, t4)
 print "Basic system is: \n" + str(system) + "\n\n"
 
 print "Creating common conditions..."
-input_conditions = CommonConditions(a1, a2, a3, a4, a5)
-output_conditions = CommonConditions(g1, g2, g3, g4, g5)
+input_conditions = CommonConditions(a1, a2, a3)
+output_conditions = CommonConditions(g1, g2, g3)
 
 print "generating ..."
 print "input conditions... " + input_conditions.generate_conditions()
@@ -119,7 +110,7 @@ for input_index in xrange(amount_conditions):
 
         print "after system analyse: \n", new_system
         print "all custom conditions: ",  custom_cond
-        if custom_cond.exist_contradiction(in_cond, out_cond):
+        if custom_cond.exist_contradiction_with_common(in_cond, out_cond):
             print "New system has contradiction conditions."
             print "FAIL SYSTEM!!!!"
             fails += 1

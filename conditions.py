@@ -12,7 +12,12 @@ class StateConditions(Enum):
     IS_ZERO = 0
     IS_NOT_ZERO = 1
     IS_EQUAL = 2
-    IS_SUMM = 3
+
+
+class CompareCondition(Enum):
+    CONTRADICTION = 0
+    NOT_EQUAL = 1
+    EQUAL = 2
 
 
 class Condition(object):
@@ -55,18 +60,6 @@ class Condition(object):
         else:
             return str(self.__left_side) + " = " + str(self.__right_side)
 
-    def check_condition(self):
-        if len(self.__left_side) == 0 and len(self.__right_side) == 0 and (
-                self.__state == StateConditions.IS_NOT_ZERO):
-            raise ConditionExeption("Bad condition")
-
-    def swap_sides(self):
-        print "[swap_sides] ", str(self)
-        # assert len(self.__left_side) == 0 and len(self.__right_side) > 0
-        right = self.__right_side
-        self.__right_side = self.__left_side
-        self.__left_side = right
-
     def get_left_side(self):
         return self.__left_side
 
@@ -79,17 +72,105 @@ class Condition(object):
     def set_state(self, state):
         self.__state = state
 
-    def is_contradiction(self, other):
-        assert isinstance(other, Condition)
-        if self.__left_side == other.__left_side:
-            sum_state = self.__state.value + other.__state.value
-            # sum of state IS_ZERO and IS_NOT_ZERO = 1
-            if sum_state == 1:
-                return True
-        return False
-
     def copy(self):
         return Condition(self.__left_side.copy(), self.__right_side.copy(), self.__state)
+
+    def is_correct(self):
+        if len(self.__right_side) == 0:
+            if self.__state == StateConditions.IS_EQUAL:
+                return False
+
+        if len(self.__right_side) != 0 and self.__state != StateConditions.IS_EQUAL:
+            return False
+
+        if len(self.__left_side) == 0 and len(self.__right_side) == 0 and (
+                self.__state == StateConditions.IS_NOT_ZERO):
+            return False
+
+        if self.__left_side == self.__right_side and (
+                self.__state == StateConditions.IS_NOT_ZERO):
+            return False
+        return True
+
+    def is_useless(self):
+        if len(self.__left_side) == 0 and len(self.__right_side) == 0 and (
+                self.__state == StateConditions.IS_ZERO):
+            return True
+        if self.__left_side == self.__right_side and self.__state == StateConditions.IS_EQUAL:
+            return True
+        return False
+
+    def swap_sides(self):
+        # print "[swap_sides] ", str(self)
+        # assert len(self.__left_side) == 0 and len(self.__right_side) > 0
+        right = self.__right_side
+        self.__right_side = self.__left_side
+        self.__left_side = right
+
+    def __move_to_one_side(self):
+        assert self.__state != StateConditions.IS_NOT_ZERO
+        side = self.__left_side.copy()
+        side.add_side(self.__right_side)
+        return side
+
+    #  need to check for useless
+    def normalise(self):
+        if self.__state == StateConditions.IS_NOT_ZERO:
+            return
+        side = self.__move_to_one_side()
+        this = Condition.create_zero_condition(side)
+        self.__left_side = this.__left_side
+        self.__right_side = this.__right_side
+        self.__state = this.__state
+
+    def update_with(self, condition):
+        if condition.__state == StateConditions.IS_NOT_ZERO:
+            return
+
+        if self.__right_side.contains(condition.__left_side):
+            self.__right_side.replace_in_side(condition.__left_side, condition.__right_side)
+        if self.__left_side.contains(condition.__left_side):
+            self.__left_side.replace_in_side(condition.__left_side, condition.__right_side)
+
+        self.normalise()
+
+    # def is_contradiction(self, other):
+    #     assert isinstance(other, Condition)
+    #     if self.__left_side == other.__left_side:
+    #         sum_state = self.__state.value + other.__state.value
+    #         # sum of state IS_ZERO and IS_NOT_ZERO = 1
+    #         check = StateConditions.IS_ZERO.value + StateConditions.IS_NOT_ZERO.value
+    #         if sum_state == check:
+    #             return True
+    #     return False
+
+    def __get_all_in_left_side(self):
+        if self.__state == StateConditions.IS_NOT_ZERO:
+            return self
+        else:
+            return Condition(self.__move_to_one_side(), Side(), StateConditions.IS_ZERO)
+
+    def compare_conditions(self, other):
+        """
+        can return
+            CompareCondition.EQUAL
+            CompareCondition.CONTRADICTION
+            CompareCondition.NOT_EQUAL
+        """
+        assert isinstance(other, Condition)
+        this = self.__get_all_in_left_side()
+        other2 = other.__get_all_in_left_side()
+        # print "[compare_conditions] %s vs %s" % (str(self), str(other))
+        if this.__left_side == other2.__left_side:
+            if this.__state == other2.__state:
+                # print "equal"
+                return CompareCondition.EQUAL
+            else:
+                # print "contra"
+                return CompareCondition.CONTRADICTION
+        else:
+            # print "not equal"
+            return CompareCondition.NOT_EQUAL
 
     @staticmethod
     def create_zero_condition(side):
@@ -232,84 +313,74 @@ class CustomConditions(object):
     def __len__(self):
         return len(self.__conditions)
 
+    def __is_exist_conditions(self, cond):
+        for condition in self.__conditions:
+            if cond == condition:
+                return True
+        return False
+
+    def __update_all(self):
+        length = len(self.__conditions)
+        for x in xrange(length):
+            first = self.__conditions[x]
+            for y in xrange(length):
+                if x != y:
+                    second = self.__conditions[y]
+                    second.update_with(first)
+                    if not second.is_correct():
+                        raise ConditionExeption("Bad condition %s" % str(second))
+
+    # def append_common_condition(self, common_in, common_out):
+    #     in_nz = common_in.get_non_zero_condition()
+    #     out_nz = common_out.get_non_zero_condition()
+    #     for cond in in_nz:
+    #         self.__conditions.append(cond.copy())
+    #     for cond in out_nz:
+    #         self.__conditions.append(cond.copy())
+    #     print "[append_common_condition] after " + str(self)
+
     def append_condition(self, condition):
-        # print "append cond = ", str(condition)
-        left_side = condition.get_left_side()
-        right_side = condition.get_right_side()
-        # assert len(left_side) == 1
-        # print "!!!before cond { "+"\n".join(map(str, self.__conditions))+"\n}"
-
-        for cond in self.__conditions:
-            if cond.get_right_side() == right_side and (
-                cond.get_left_side() == left_side and (
-                    cond.get_state() == condition.get_state())):
-                print "Find the same condition %s" % str(condition)
-                return
-
-        if condition.get_state() == StateConditions.IS_NOT_ZERO:
+        print "[append_condition] append " + str(condition)
+        print "[append_condition] to " + str(self)
+        if not self.__is_exist_conditions(condition):
             self.__conditions.append(condition)
-            self.__update_conditions()
-            return
+        # print "[append_condition] after append " + str(self)
+        self.__update_all()
+        # print "[append_condition] after __update_all " + str(self)
+        self.remove_duplicate_conditions()
+        # print "[append_condition] after remove_duplicate_conditions " + str(self)
+        self.exist_contradiction()
+        # print "[append_condition] after exist_contradiction " + str(self)
+        self.remove_useless()
+        print "[append_condition] cc became " + str(self)
 
+    def remove_duplicate_conditions(self):
+        rm = []
+        length = len(self.__conditions)
+        for x in xrange(length):
+            first = self.__conditions[x]
+            for y in xrange(x + 1, length):
+                second = self.__conditions[y]
+                if first.compare_conditions(second) == CompareCondition.EQUAL:
+                    rm.append(second)
+
+        for cond in rm:
+            print "[remove_duplicate_conditions] will remove " + str(cond)
+            self.__conditions.remove(cond)
+
+    def remove_useless(self):
+        rm = []
         for cond in self.__conditions:
-            right = cond.get_right_side()
-            left = cond.get_left_side()
-            if right.contains(left_side):
-                right.replace_in_side(left_side, right_side)
-                if len(right) == 0 and cond.get_state() != StateConditions.IS_NOT_ZERO:
-                    cond.set_state(StateConditions.IS_ZERO)
-            if left.contains(left_side):
-                left.replace_in_side(left_side, right_side)
-                if len(left) == 0:
-                    cond.swap_sides()
-                    if cond.get_state() != StateConditions.IS_NOT_ZERO:
-                        cond.set_state(StateConditions.IS_ZERO)
-            cond.check_condition()
-        self.__conditions.append(condition)
-
-        self.__update_conditions()
-
-    def __update_conditions(self):
-        for cond1 in self.__conditions:
-            if cond1.get_state() == StateConditions.IS_NOT_ZERO:
-                continue
-            left1 = cond1.get_left_side()
-            for cond2 in self.__conditions:
-                if cond1 == cond2:
-                    continue
-                right2 = cond2.get_right_side()
-                left2 = cond2.get_left_side()
-                if right2.contains(left1):
-                    right2.replace_in_side(left1, cond1.get_right_side())
-
-                    if len(right2) == 0 and (
-                            cond2.get_state() != StateConditions.IS_NOT_ZERO):
-                        cond2.set_state(StateConditions.IS_ZERO)
-                if left2.contains(left1):
-                    left2.replace_in_side(left1, cond1.get_right_side())
-                    if len(left2) == 0:
-                        cond2.swap_sides()
-                        if cond2.get_state() != StateConditions.IS_NOT_ZERO:
-                            cond2.set_state(StateConditions.IS_ZERO)
-                cond2.check_condition()
-
-        rem = []
-        for x in xrange(len(self.__conditions)):
-            cond = self.__conditions[x]
-            if len(cond.get_left_side()) == 0 and (
-                    len(cond.get_right_side()) == 0 and (
-                        cond.get_state() == StateConditions.IS_ZERO)):
-                rem.append(cond)
-        for rm_cond in rem:
-            self.__conditions.remove(rm_cond)
-
-
+            if cond.is_useless():
+                rm.append(cond)
+        for cond in rm:
+            self.__conditions.remove(cond)
 
     def get_condition(self, index):
         assert index <= len(self.__conditions)
         return self.__conditions[index]
 
-    def exist_contradiction(self, *common_conditions):
+    def exist_contradiction_with_common(self, *common_conditions):
         for com_cond in common_conditions:
             assert isinstance(com_cond, CommonCondition)
 
@@ -318,9 +389,21 @@ class CustomConditions(object):
 
             for self_cond in self.__conditions:
                 for c in nz_z_c:
-                    if c.is_contradiction(self_cond):
+                    if c.compare_conditions(self_cond) == CompareCondition.CONTRADICTION:
                         return True
         return False
+
+    def exist_contradiction(self):
+        length = len(self.__conditions)
+        for x in xrange(length):
+            first = self.__conditions[x]
+            for y in xrange(length):
+                if x == y:
+                    continue
+                second = self.__conditions[y]
+                if first.compare_conditions(second) == CompareCondition.CONTRADICTION:
+                    raise ConditionExeption(
+                        "Found CONTRADICTION conditions %s and %s" % (str(first), str(second)))
 
     def copy(self):
         new_cc = CustomConditions()
@@ -334,17 +417,77 @@ class CustomConditions(object):
 
         return new_cc
 
-    def is_side_non_zero(self, side, common_in, common_out):
-        nz_c = list(common_in.get_non_zero_condition())
-        nz_c.extend(common_out.get_non_zero_condition())
-        nz_sides = [cond.get_left_side() for cond in nz_c]
-
-        if side in nz_sides:
-            return True
-
+    def is_side_non_zero(self, side):
         for condition in self.__conditions:
-            left = condition.get_left_side()
-            assert len(left) > 0
-            if condition.get_state() == StateConditions.IS_NOT_ZERO and left == side:
+            if condition.get_state() == StateConditions.IS_NOT_ZERO and (
+                    condition.get_left_side() == side):
                 return True
         return False
+
+    # def append_condition(self, condition):
+    #     # print "append cond = ", str(condition)
+    #     left_side = condition.get_left_side()
+    #     right_side = condition.get_right_side()
+    #     # assert len(left_side) == 1
+    #     # print "!!!before cond { "+"\n".join(map(str, self.__conditions))+"\n}"
+
+    #     if self.__is_exist_conditions(condition):
+    #         print "Find the same condition %s. Not add it." % str(condition)
+    #         return
+
+    #     if condition.get_state() == StateConditions.IS_NOT_ZERO:
+    #         self.__conditions.append(condition)
+    #         self.__update_conditions()
+    #         return
+
+    #     for cond in self.__conditions:
+    #         right = cond.get_right_side()
+    #         left = cond.get_left_side()
+    #         if right.contains(left_side):
+    #             right.replace_in_side(left_side, right_side)
+    #             if len(right) == 0 and cond.get_state() != StateConditions.IS_NOT_ZERO:
+    #                 cond.set_state(StateConditions.IS_ZERO)
+    #         if left.contains(left_side):
+    #             left.replace_in_side(left_side, right_side)
+    #             if len(left) == 0:
+    #                 cond.swap_sides()
+    #                 if cond.get_state() != StateConditions.IS_NOT_ZERO:
+    #                     cond.set_state(StateConditions.IS_ZERO)
+    #         cond.is_correct()
+    #     self.__conditions.append(condition)
+
+    #     self.__update_conditions()
+
+    # def __update_conditions(self):
+    #     for cond1 in self.__conditions:
+    #         if cond1.get_state() == StateConditions.IS_NOT_ZERO:
+    #             continue
+    #         left1 = cond1.get_left_side()
+    #         for cond2 in self.__conditions:
+    #             if cond1 == cond2:
+    #                 continue
+    #             right2 = cond2.get_right_side()
+    #             left2 = cond2.get_left_side()
+    #             if right2.contains(left1):
+    #                 right2.replace_in_side(left1, cond1.get_right_side())
+
+    #                 if len(right2) == 0 and (
+    #                         cond2.get_state() != StateConditions.IS_NOT_ZERO):
+    #                     cond2.set_state(StateConditions.IS_ZERO)
+    #             if left2.contains(left1):
+    #                 left2.replace_in_side(left1, cond1.get_right_side())
+    #                 if len(left2) == 0:
+    #                     cond2.swap_sides()
+    #                     if cond2.get_state() != StateConditions.IS_NOT_ZERO:
+    #                         cond2.set_state(StateConditions.IS_ZERO)
+    #             cond2.is_correct()
+
+    #     rem = []
+    #     for x in xrange(len(self.__conditions)):
+    #         cond = self.__conditions[x]
+    #         if len(cond.get_left_side()) == 0 and (
+    #                 len(cond.get_right_side()) == 0 and (
+    #                     cond.get_state() == StateConditions.IS_ZERO)):
+    #             rem.append(cond)
+    #     for rm_cond in rem:
+    #         self.__conditions.remove(rm_cond)

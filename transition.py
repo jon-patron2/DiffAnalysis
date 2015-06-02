@@ -196,7 +196,7 @@ class SystemTransition(object):
         transitions = system.get_transitions()
 
         for x in xrange(len(transitions) - 1, -1, -1):
-            if custom_cond.exist_contradiction(common_in, common_out):
+            if custom_cond.exist_contradiction_with_common(common_in, common_out):
                 print "ESTIMATE: CONDITIONS HAVE CONTADICTIONS"
                 print "custom_conditions %s\n" % str(custom_cond)
                 print "common_in ", str(common_in)
@@ -218,8 +218,8 @@ class SystemTransition(object):
                 print "Transition is triviality"
                 continue
 
-            is_left_non_zero = custom_cond.is_side_non_zero(left, common_in, common_out)
-            is_right_non_zero = custom_cond.is_side_non_zero(right, common_in, common_out)
+            is_left_non_zero = custom_cond.is_side_non_zero(left)
+            is_right_non_zero = custom_cond.is_side_non_zero(right)
 
             if is_left_non_zero and is_right_non_zero:
                 print "Both sides of transition are NOT ZERO"
@@ -371,6 +371,7 @@ class SystemTransition(object):
                     res_list.append(str_est)
                 else:
                     assert len(res_list) == 1
+                    print "res_list = " + str(res_list)
                     comp_expo = int(res_list[0][2])
                     print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
                     if expo < comp_expo:

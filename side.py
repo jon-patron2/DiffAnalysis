@@ -122,11 +122,15 @@ class Side(object):
             self.pop_variable(var)
 
         # add all elements from replacement to self
-        for var in replacement.__vars:
-            self.add_variable(var)
+        self.add_side(replacement)
 
     def add_variable(self, variable):
         if self.contains_element(variable):
             self.pop_variable(variable)
         else:
             self.__vars.append(variable)
+
+    def add_side(self, side):
+        assert isinstance(side, Side)
+        for var in side.__vars:
+            self.add_variable(var)
