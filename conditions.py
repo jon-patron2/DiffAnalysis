@@ -107,21 +107,18 @@ class Condition(object):
         self.__right_side = self.__left_side
         self.__left_side = right
 
-    def __move_to_one_side(self):
-        assert self.__state != StateConditions.IS_NOT_ZERO
-        side = self.__left_side.copy()
-        side.add_side(self.__right_side)
-        return side
-
     #  need to check for useless
     def normalise(self):
         if self.__state == StateConditions.IS_NOT_ZERO:
             return
-        side = self.__move_to_one_side()
-        this = Condition.create_zero_condition(side)
-        self.__left_side = this.__left_side
-        self.__right_side = this.__right_side
-        self.__state = this.__state
+        self.__right_side.move_side(self.__left_side)
+        var = self.__right_side.get_the_latest_variable()
+        if var is not None:
+            self.__left_side.add_variable(var)
+        if len(self.__right_side) == 0:
+            self.__state = StateConditions.IS_ZERO
+        else:
+            self.__state = StateConditions.IS_EQUAL
 
     def update_with(self, condition):
         if condition.__state == StateConditions.IS_NOT_ZERO:
@@ -146,9 +143,11 @@ class Condition(object):
 
     def __get_all_in_left_side(self):
         if self.__state == StateConditions.IS_NOT_ZERO:
-            return self
+            return (self.__left_side, self.__state)
         else:
-            return Condition(self.__move_to_one_side(), Side(), StateConditions.IS_ZERO)
+            c = self.__right_side.copy()
+            c.add_side(self.__left_side)
+            return (c, StateConditions.IS_ZERO)
 
     def compare_conditions(self, other):
         """
@@ -158,11 +157,13 @@ class Condition(object):
             CompareCondition.NOT_EQUAL
         """
         assert isinstance(other, Condition)
+        if not self.is_correct() or not other.is_correct():
+            return CompareCondition.CONTRADICTION
         this = self.__get_all_in_left_side()
         other2 = other.__get_all_in_left_side()
         # print "[compare_conditions] %s vs %s" % (str(self), str(other))
-        if this.__left_side == other2.__left_side:
-            if this.__state == other2.__state:
+        if this[0] == other2[0]:
+            if this[1] == other2[1]:
                 # print "equal"
                 return CompareCondition.EQUAL
             else:
@@ -175,23 +176,11 @@ class Condition(object):
     @staticmethod
     def create_zero_condition(side):
         assert isinstance(side, Side) and len(side) > 0
-        if len(side) == 1:
-            return Condition(side, Side(), StateConditions.IS_ZERO)
-
-        state = StateConditions.IS_EQUAL
-        try:
-            lat_unknown = side.find_the_latest_unknown()
-            side.pop_variable(lat_unknown)
-            return Condition(Side(lat_unknown), side, state)
-        except SideException:
-            try:
-                lat_output = side.find_the_latest_output()
-                side.pop_variable(lat_output)
-                return Condition(Side(lat_output), side, state)
-            except SideException:
-                lat_input = side.find_the_latest_input()
-                side.pop_variable(lat_input)
-                return Condition(Side(lat_input), side, state)
+        var = side.get_the_latest_variable()
+        if len(side) == 0:
+            return Condition(Side(var), side, StateConditions.IS_ZERO)
+        else:
+            return Condition(Side(var), side, StateConditions.IS_EQUAL)
 
     @staticmethod
     def create_non_zero_condition(side):
@@ -330,18 +319,9 @@ class CustomConditions(object):
                     if not second.is_correct():
                         raise ConditionExeption("Bad condition %s" % str(second))
 
-    # def append_common_condition(self, common_in, common_out):
-    #     in_nz = common_in.get_non_zero_condition()
-    #     out_nz = common_out.get_non_zero_condition()
-    #     for cond in in_nz:
-    #         self.__conditions.append(cond.copy())
-    #     for cond in out_nz:
-    #         self.__conditions.append(cond.copy())
-    #     print "[append_common_condition] after " + str(self)
-
     def append_condition(self, condition):
         print "[append_condition] append " + str(condition)
-        print "[append_condition] to " + str(self)
+        # print "[append_condition] to " + str(self)
         if not self.__is_exist_conditions(condition):
             self.__conditions.append(condition)
         # print "[append_condition] after append " + str(self)
@@ -349,7 +329,8 @@ class CustomConditions(object):
         # print "[append_condition] after __update_all " + str(self)
         self.remove_duplicate_conditions()
         # print "[append_condition] after remove_duplicate_conditions " + str(self)
-        self.exist_contradiction()
+        if self.exist_contradiction_internal():
+            raise ConditionExeption("contains contradictions")
         # print "[append_condition] after exist_contradiction " + str(self)
         self.remove_useless()
         print "[append_condition] cc became " + str(self)
@@ -374,36 +355,35 @@ class CustomConditions(object):
             if cond.is_useless():
                 rm.append(cond)
         for cond in rm:
+            print "[remove_useless] will remove " + str(cond)
             self.__conditions.remove(cond)
 
     def get_condition(self, index):
         assert index <= len(self.__conditions)
         return self.__conditions[index]
 
-    def exist_contradiction_with_common(self, *common_conditions):
-        for com_cond in common_conditions:
-            assert isinstance(com_cond, CommonCondition)
+    def exist_contradiction(self, common_conditions):
+        assert isinstance(common_conditions, list)
 
-            nz_z_c = list(com_cond.get_non_zero_condition())
-            nz_z_c.extend(com_cond.get_zero_condition())
+        for self_cond in self.__conditions:
+            for c in common_conditions:
+                if c.compare_conditions(self_cond) == CompareCondition.CONTRADICTION:
+                    print "Found contradictions %s and %s" % (str(c), str(self_cond))
+                    return True
+        print "not found contra with common_conditions"
+        return self.exist_contradiction_internal()
 
-            for self_cond in self.__conditions:
-                for c in nz_z_c:
-                    if c.compare_conditions(self_cond) == CompareCondition.CONTRADICTION:
-                        return True
-        return False
-
-    def exist_contradiction(self):
+    def exist_contradiction_internal(self):
         length = len(self.__conditions)
         for x in xrange(length):
             first = self.__conditions[x]
-            for y in xrange(length):
-                if x == y:
-                    continue
+            for y in xrange(x + 1, length):
                 second = self.__conditions[y]
                 if first.compare_conditions(second) == CompareCondition.CONTRADICTION:
-                    raise ConditionExeption(
-                        "Found CONTRADICTION conditions %s and %s" % (str(first), str(second)))
+                    print "Found contradictions %s and %s" % (str(first), str(second))
+                    return True
+        print "not found contra"
+        return False
 
     def copy(self):
         new_cc = CustomConditions()

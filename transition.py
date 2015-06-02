@@ -148,10 +148,8 @@ class SystemTransition(object):
         # print "[count_unknown_vars] len(%s) = %d" % (str(s), len(s))
         return len(s)
 
-    def do_fast_estimation(self, custom_cond, common_in, common_out):
-        nz_c = list(common_in.get_non_zero_condition())
-        nz_c.extend(common_out.get_non_zero_condition())
-        nz_sides = [cond.get_left_side() for cond in nz_c]
+    def do_fast_estimation(self, custom_cond, common_cond_nz):
+        nz_sides = [cond.get_left_side() for cond in common_cond_nz]
 
         count_simple = 0
         for trans in self.__transitions:
@@ -184,7 +182,7 @@ class SystemTransition(object):
         return count_simple == len(self.__transitions)
 
     @staticmethod
-    def estimate(system, custom_cond, common_in, common_out, res_list, call_as_fork):
+    def estimate(system, custom_cond, common_in, common_out, comcon_nz, res_list, call_as_fork):
         count_triviality = 0
         count_with_unknowns = 0
         print "#"*50 + "start estimation" + "#"*50
@@ -196,7 +194,7 @@ class SystemTransition(object):
         transitions = system.get_transitions()
 
         for x in xrange(len(transitions) - 1, -1, -1):
-            if custom_cond.exist_contradiction_with_common(common_in, common_out):
+            if custom_cond.exist_contradiction(comcon_nz):
                 print "ESTIMATE: CONDITIONS HAVE CONTADICTIONS"
                 print "custom_conditions %s\n" % str(custom_cond)
                 print "common_in ", str(common_in)
@@ -280,12 +278,12 @@ class SystemTransition(object):
                 left_zc = Condition.create_zero_condition(left.copy())
                 right_zc = Condition.create_zero_condition(right.copy())
                 print "New zero conditions %s and %s" % (str(left_zc), str(right_zc))
+                new_system = system.copy()
+                print "New system copy \n" + str(new_system)
                 try:
                     new_custom_c.append_condition(left_zc)
                     new_custom_c.append_condition(right_zc)
                     print "New custom conditions " + str(new_custom_c)
-                    new_system = system.copy()
-                    print "New system copy \n" + str(new_system)
                     new_system.apply_custom_conditions(new_custom_c)
                     print "New system apply_custom_conditions \n" + str(new_system)
                     new_system.analyse_and_set_custom_conditions(new_custom_c)
@@ -293,19 +291,22 @@ class SystemTransition(object):
                     print "Updated custom conditions " + str(new_custom_c)
                     print "Goto recursion"
 
-                    if not fork:
-                        SystemTransition.estimate(
-                            new_system, new_custom_c, common_in, common_out, res_list, False)
-                    else:
-                        # fork
-                        SystemTransition.estimate(
-                            new_system, new_custom_c, common_in, common_out, res_list, True)
-
                 except ConditionExeption:
                     print "#"*30 + "Catche ConditionExeption. System FAIL." + "#"*30
                     SystemTransition.__write_result(
                         system, custom_cond, common_in, common_out, count_triviality,
                         count_with_unknowns, res_list, call_as_fork, True)
+                else:
+
+                    if not fork:
+                        SystemTransition.estimate(
+                            new_system, new_custom_c, common_in, common_out,
+                            comcon_nz, res_list, False)
+                    else:
+                        # fork
+                        SystemTransition.estimate(
+                            new_system, new_custom_c, common_in, common_out,
+                            comcon_nz, res_list, True)
 
                 # none zero case
                 left_nzc = Condition.create_non_zero_condition(left.copy())

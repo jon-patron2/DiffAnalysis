@@ -134,3 +134,27 @@ class Side(object):
         assert isinstance(side, Side)
         for var in side.__vars:
             self.add_variable(var)
+
+    def move_side(self, other):
+        while len(other.__vars) > 0:
+            self.add_variable(other.__vars.pop(0))
+
+    def get_the_latest_variable(self):
+        length = len(self.__vars)
+        if length == 0:
+            return None
+        if length == 1:
+            return self.__vars.pop(0)
+        try:
+            lat_unknown = self.find_the_latest_unknown()
+            self.pop_variable(lat_unknown)
+            return lat_unknown
+        except SideException:
+            try:
+                lat_output = self.find_the_latest_output()
+                self.pop_variable(lat_output)
+                return lat_output
+            except SideException:
+                lat_input = self.find_the_latest_input()
+                self.pop_variable(lat_input)
+                return lat_input

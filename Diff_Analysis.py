@@ -31,38 +31,43 @@ def print_results(results):
 a1 = Variable(TypeVariable.INPUT)
 a2 = Variable(TypeVariable.INPUT)
 a3 = Variable(TypeVariable.INPUT)
-# a4 = Variable(TypeVariable.INPUT)
-# a5 = Variable(TypeVariable.INPUT)
+a4 = Variable(TypeVariable.INPUT)
+a5 = Variable(TypeVariable.INPUT)
 
 g1 = Variable(TypeVariable.OUTPUT)
 g2 = Variable(TypeVariable.OUTPUT)
 g3 = Variable(TypeVariable.OUTPUT)
-# g4 = Variable(TypeVariable.OUTPUT)
-# g5 = Variable(TypeVariable.OUTPUT)
+g4 = Variable(TypeVariable.OUTPUT)
+g5 = Variable(TypeVariable.OUTPUT)
 
 b1 = Variable(TypeVariable.UNKNOWN)
 b2 = Variable(TypeVariable.UNKNOWN)
 b3 = Variable(TypeVariable.UNKNOWN)
-# b4 = Variable(TypeVariable.UNKNOWN)
-# b5 = Variable(TypeVariable.UNKNOWN)
-# b6 = Variable(TypeVariable.UNKNOWN)
-# b7 = Variable(TypeVariable.UNKNOWN)
+b4 = Variable(TypeVariable.UNKNOWN)
+b5 = Variable(TypeVariable.UNKNOWN)
+b6 = Variable(TypeVariable.UNKNOWN)
+b7 = Variable(TypeVariable.UNKNOWN)
 # b8 = Variable(TypeVariable.UNKNOWN)
 # b9 = Variable(TypeVariable.UNKNOWN)
 
 
-t1 = Transition(Side(a1), Side(a2, a3, b1))
-t2 = Transition(Side(a2), Side(a3, b1, g1))
-t3 = Transition(Side(a3), Side(b1, g1, g2))
-t4 = Transition(Side(a3), Side(g1, g2, g3))
+t1 = Transition(Side(a1), Side(a2, a3, a4, a5, b1))
+t2 = Transition(Side(a2), Side(a3, a4, a5, b1, b2))
+t3 = Transition(Side(a3), Side(a4, a5, b1, b2, b3))
+t4 = Transition(Side(a4), Side(a5, b1, b2, b3, b4))
+t5 = Transition(Side(a5), Side(b1, b2, b3, b4, g1))
+t6 = Transition(Side(b1), Side(b2, b3, b4, g1, g2))
+t7 = Transition(Side(b2), Side(b3, b4, g1, g2, g3))
+t8 = Transition(Side(b3), Side(b4, g1, g2, g3, g4))
+t9 = Transition(Side(b4), Side(g1, g2, g3, g4, g5))
 
 
-system = SystemTransition(t1, t2, t3, t4)
+system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9)
 print "Basic system is: \n" + str(system) + "\n\n"
 
 print "Creating common conditions..."
-input_conditions = CommonConditions(a1, a2, a3)
-output_conditions = CommonConditions(g1, g2, g3)
+input_conditions = CommonConditions(a1, a2, a3, a4, a5)
+output_conditions = CommonConditions(g1, g2, g3, g4, g5)
 
 print "generating ..."
 print "input conditions... " + input_conditions.generate_conditions()
@@ -81,14 +86,16 @@ for input_index in xrange(amount_conditions):
 
         in_cond = input_conditions.get_condition(input_index)
         out_cond = output_conditions.get_condition(output_index)
+        comcon_nz = list(in_cond.get_non_zero_condition())
+        comcon_nz.extend(out_cond.get_zero_condition())
 
         print "=" * 50 + "start" + "=" * 50
         case_results = []
         print "case is %d" % (case + 1)
         case += 1
-        # if case < 197:
+        # if case < 2:
         #     continue
-        # if case > 197:
+        # if case > 2:
         #     exit(0)
         print "Input condition ", str(in_cond)
         print "Output condition ", str(out_cond)
@@ -110,12 +117,12 @@ for input_index in xrange(amount_conditions):
 
         print "after system analyse: \n", new_system
         print "all custom conditions: ",  custom_cond
-        if custom_cond.exist_contradiction_with_common(in_cond, out_cond):
+        if custom_cond.exist_contradiction(comcon_nz):
             print "New system has contradiction conditions."
             print "FAIL SYSTEM!!!!"
             fails += 1
             case_results.append("Fail")
-        elif new_system.do_fast_estimation(custom_cond, in_cond, out_cond):
+        elif new_system.do_fast_estimation(custom_cond, comcon_nz):
             print "CAN BE ESTIMATED  p^%d!!! All primitive transitions" % len(new_system)
             estimated += 1
             case_results.append("p^%d" % len(new_system))
@@ -124,7 +131,8 @@ for input_index in xrange(amount_conditions):
             print "after applying conditions: \n", new_system
             print "=" * 50 + "end" + "=" * 50
             SystemTransition.estimate(
-                new_system, custom_cond, in_cond, out_cond, case_results, False)
+                new_system, custom_cond, in_cond, out_cond,
+                comcon_nz, case_results, False)
 
         print "case res = " + str(case_results)
         results.append(case_results)
@@ -153,7 +161,12 @@ def handle_list(lst):
     for x in xrange(len(lst)):
         if isinstance(lst[x], list):
             if len(lst[x]) > 1:
-                handle_list(lst[x])
+                if all(isinstance(est, str) for est in lst[x]) and lst[x][0] != 'fork':
+                    m = min([int(val[2]) for val in lst[x]])
+                    lst[x] = 'p^%d' % m
+                    print "replace to " + lst[x]
+                else:
+                    handle_list(lst[x])
             if len(lst[x]) == 1:
                 if lst[x][0] == 'fork':
                     lst[x] = ''
@@ -165,6 +178,16 @@ def handle_list(lst):
         if isinstance(lst[x], list):
             # print "again list" + str(lst[x])
             handle_list(lst[x])
+
+
+def handle_list_after_forks(lst):
+    while any(isinstance(est, list) for est in lst):
+        for x in lst:
+            if isinstance(x, list):
+                lst.remove(x)
+                for y in x:
+                    lst.append(y)
+                break
 
 
 def replace_forks(lst):
@@ -223,9 +246,11 @@ for x in xrange(len(results)):
     replace_forks(results[x])
     print "%d) before4 %s" % (x + 1, str(results[x]))
     remove_empty(results[x])
+    print "%d) before5 %s" % (x + 1, str(results[x]))
 
     if isinstance(results[x][0], list):
         results[x] = results[x][0]
+    handle_list_after_forks(results[x])
     print "%d) after %s" % (x + 1, str(results[x]))
     collect_estimates(results[x])
     print "%d) %s" % (x + 1, str(results[x]))
