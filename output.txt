@@ -30,6 +30,16 @@ t5 = Transition(Side(b2), Side(b3, b4, g1))
 t6 = Transition(Side(b3), Side(b4, g1, g2))
 t7 = Transition(Side(b4), Side(g1, g2, g3))
 
+8 rounds
+t1 = Transition(Side(a1), Side(a2, a3, b1))
+t2 = Transition(Side(a2), Side(a3, b1, b2))
+t3 = Transition(Side(a3), Side(b1, b2, b3))
+t4 = Transition(Side(b1), Side(b2, b3, b4))
+t5 = Transition(Side(b2), Side(b3, b4, b5))
+t6 = Transition(Side(b3), Side(b4, b5, g1))
+t7 = Transition(Side(b4), Side(b5, g1, g2))
+t8 = Transition(Side(b5), Side(g1, g2, g3))
+
 11 rounds
 t1 = Transition(Side(a1), Side(a2, a3, b1))
 t2 = Transition(Side(a2), Side(a3, b1, b2))

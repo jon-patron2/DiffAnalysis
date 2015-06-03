@@ -319,12 +319,7 @@ class CustomConditions(object):
                     if not second.is_correct():
                         raise ConditionExeption("Bad condition %s" % str(second))
 
-    def append_condition(self, condition):
-        print "[append_condition] append " + str(condition)
-        # print "[append_condition] to " + str(self)
-        if not self.__is_exist_conditions(condition):
-            self.__conditions.append(condition)
-        # print "[append_condition] after append " + str(self)
+    def __update_conditions(self):
         self.__update_all()
         # print "[append_condition] after __update_all " + str(self)
         self.remove_duplicate_conditions()
@@ -333,6 +328,14 @@ class CustomConditions(object):
             raise ConditionExeption("contains contradictions")
         # print "[append_condition] after exist_contradiction " + str(self)
         self.remove_useless()
+
+    def append_condition(self, condition):
+        print "[append_condition] append " + str(condition)
+        # print "[append_condition] to " + str(self)
+        if not self.__is_exist_conditions(condition):
+            self.__conditions.append(condition)
+        # print "[append_condition] after append " + str(self)
+        self.__update_conditions()
         print "[append_condition] cc became " + str(self)
 
     def remove_duplicate_conditions(self):
@@ -388,7 +391,9 @@ class CustomConditions(object):
     def copy(self):
         new_cc = CustomConditions()
         for condition in self.__conditions:
-            new_cc.append_condition(condition.copy())
+            new_cc.__conditions.append(condition.copy())
+            # new_cc.append_condition(condition.copy())
+        new_cc.__update_conditions()
 
         # print "\n\n--------start copy custom condition --------"
         # print "old system %s" % str(self)

@@ -297,7 +297,6 @@ class SystemTransition(object):
                         system, custom_cond, common_in, common_out, count_triviality,
                         count_with_unknowns, res_list, call_as_fork, True)
                 else:
-
                     if not fork:
                         SystemTransition.estimate(
                             new_system, new_custom_c, common_in, common_out,
@@ -364,19 +363,19 @@ class SystemTransition(object):
             pass
         else:
             expo = count_triviality + count_with_unknowns - unknown_vars
-            str_est = "p^%d" % expo
+            est = ("p^%d" % expo, pow(0.5, expo))
             if len(res_list) == 0:
-                res_list.append(str_est)
+                res_list.append(est)
             else:
                 if res_list[0] == 'fork':
-                    res_list.append(str_est)
+                    res_list.append(est)
                 else:
                     assert len(res_list) == 1
                     print "res_list = " + str(res_list)
-                    comp_expo = int(res_list[0][2])
+                    comp_expo = res_list[0][1]
                     print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
                     if expo < comp_expo:
-                        res_list[0] = str_est
+                        res_list[0] = est
                     else:
                         print "list withou changes"
                     print "list %s" + str(res_list)
