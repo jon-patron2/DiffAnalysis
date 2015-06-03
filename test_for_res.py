@@ -79,7 +79,9 @@ def choose_max(lst):
     for x in xrange(len(lst)):
         if isinstance(lst[x], list):
             remove_empty_str(lst[x])
-            if contains_only_tuples(lst[x]):
+            if len(lst[x]) == 0:
+                lst[x] = ''
+            elif contains_only_tuples(lst[x]):
                 lst[x] = get_max_from_tuples(lst[x])
             else:
                 choose_max(lst[x])

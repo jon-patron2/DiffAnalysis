@@ -48,17 +48,26 @@ b4 = Variable(TypeVariable.UNKNOWN)
 b5 = Variable(TypeVariable.UNKNOWN)
 b6 = Variable(TypeVariable.UNKNOWN)
 b7 = Variable(TypeVariable.UNKNOWN)
-# b8 = Variable(TypeVariable.UNKNOWN)
+b8 = Variable(TypeVariable.UNKNOWN)
 # b9 = Variable(TypeVariable.UNKNOWN)
 
+# ts1 = Transition(Side(a2, a3, a4), Side(a1, b1))
+# ts2 = Transition(Side(a3, a4, b1), Side(a2, b2))
+# ts3 = Transition(Side(a4, b1, b2), Side(a3, g1))
+# ts4 = Transition(Side(b1, b2, g1), Side(a4, g2))
+# ts5 = Transition(Side(b2, g1, g2), Side(b1, g3))
+# ts6 = Transition(Side(g1, g2, g3), Side(b2, g4))
+
+# system = SystemTransition(ts1, ts2, ts3, ts4, ts5, ts6)
 
 t1 = Transition(Side(a1), Side(a2, a3, b1))
-t2 = Transition(Side(a2), Side(a3, b1, g1))
-t3 = Transition(Side(a3), Side(b1, g1, g2))
-t4 = Transition(Side(b1), Side(g1, g2, g3))
+t2 = Transition(Side(a2), Side(a3, b1, b2))
+t3 = Transition(Side(a3), Side(b1, b2, g1))
+t4 = Transition(Side(b1), Side(b2, g1, g2))
+t5 = Transition(Side(b2), Side(g1, g2, g3))
 
 
-system = SystemTransition(t1, t2, t3, t4)
+system = SystemTransition(t1, t2, t3, t4, t5)  # , t8, t9, t10, t11)
 print "Basic system is: \n" + str(system) + "\n\n"
 
 print "Creating common conditions..."
