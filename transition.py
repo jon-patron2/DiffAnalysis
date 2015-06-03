@@ -370,14 +370,20 @@ class SystemTransition(object):
                 if res_list[0] == 'fork':
                     res_list.append(est)
                 else:
-                    assert len(res_list) == 1
+                    # assert len(res_list) == 1
                     print "res_list = " + str(res_list)
-                    comp_expo = res_list[0][1]
-                    print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
-                    if expo < comp_expo:
-                        res_list[0] = est
+
+                    for x in xrange(len(res_list)):
+                        if isinstance(res_list[x], tuple):
+                            comp_expo = res_list[x][1]
+                            print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
+                            if expo < comp_expo:
+                                res_list[x] = est
+                            else:
+                                print "list withou changes"
+                            break
                     else:
-                        print "list withou changes"
+                        res_list.append(est)
                     print "list %s" + str(res_list)
 
             # res_list.append(str_est)
