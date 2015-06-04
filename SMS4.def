@@ -76,6 +76,38 @@ ts9 = Transition(Side(b7, g1), Side(g2, b6))
 ts10 = Transition(Side(g1, g2), Side(g3, b7))
 system = SystemTransition(ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10)
 
+11
+ts1 = Transition(Side(a2, a3), Side(b1, a1))
+ts2 = Transition(Side(a3, b1), Side(b2, a2))
+ts3 = Transition(Side(b1, b2), Side(b3, a3))
+ts4 = Transition(Side(b2, b3), Side(b4, b1))
+ts5 = Transition(Side(b3, b4), Side(b5, b2))
+ts6 = Transition(Side(b4, b5), Side(b6, b3))
+ts7 = Transition(Side(b5, b6), Side(b7, b4))
+ts8 = Transition(Side(b6, b7), Side(b8, b5))
+ts9 = Transition(Side(b7, b8), Side(g1, b6))
+ts10 = Transition(Side(b8, g1), Side(g2, b7))
+ts11 = Transition(Side(g1, g2), Side(g3, b8))
+system = SystemTransition(ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11)
+
+12
+ts1 = Transition(Side(a2, a3), Side(b1, a1))
+ts2 = Transition(Side(a3, b1), Side(b2, a2))
+ts3 = Transition(Side(b1, b2), Side(b3, a3))
+ts4 = Transition(Side(b2, b3), Side(b4, b1))
+ts5 = Transition(Side(b3, b4), Side(b5, b2))
+ts6 = Transition(Side(b4, b5), Side(b6, b3))
+ts7 = Transition(Side(b5, b6), Side(b7, b4))
+ts8 = Transition(Side(b6, b7), Side(b8, b5))
+ts9 = Transition(Side(b7, b8), Side(b9, b6))
+ts10 = Transition(Side(b8, b9), Side(g1, b7))
+ts11 = Transition(Side(b9, g1), Side(g2, b8))
+ts12 = Transition(Side(g1, g2), Side(g3, b9))
+system = SystemTransition(ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10, ts11, ts12)
+
+
+
+
 
 4 blocks
 
