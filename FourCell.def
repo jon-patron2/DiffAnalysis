@@ -217,6 +217,39 @@ t11 = Transition(Side(b7), Side(b8, g1, g2, g3))
 t12 = Transition(Side(b8), Side(g1, g2, g3, g4))
 system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12)
 
+13 rounds
+t1 = Transition(Side(a1), Side(a2, a3, a4, b1))
+t2 = Transition(Side(a2), Side(a3, a4, b1, b2))
+t3 = Transition(Side(a3), Side(a4, b1, b2, b3))
+t4 = Transition(Side(a4), Side(b1, b2, b3, b4))
+t5 = Transition(Side(b1), Side(b2, b3, b4, b5))
+t6 = Transition(Side(b2), Side(b3, b4, b5, b6))
+t7 = Transition(Side(b3), Side(b4, b5, b6, b7))
+t8 = Transition(Side(b4), Side(b5, b6, b7, b8))
+t9 = Transition(Side(b5), Side(b6, b7, b8, b9))
+t10 = Transition(Side(b6), Side(b7, b8, b9, g1))
+t11 = Transition(Side(b7), Side(b8, b9, g1, g2))
+t12 = Transition(Side(b8), Side(b9, g1, g2, g3))
+t13 = Transition(Side(b9), Side(g1, g2, g3, g4))
+system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13)
+
+14 rounds
+t1 = Transition(Side(a1), Side(a2, a3, a4, b1))
+t2 = Transition(Side(a2), Side(a3, a4, b1, b2))
+t3 = Transition(Side(a3), Side(a4, b1, b2, b3))
+t4 = Transition(Side(a4), Side(b1, b2, b3, b4))
+t5 = Transition(Side(b1), Side(b2, b3, b4, b5))
+t6 = Transition(Side(b2), Side(b3, b4, b5, b6))
+t7 = Transition(Side(b3), Side(b4, b5, b6, b7))
+t8 = Transition(Side(b4), Side(b5, b6, b7, b8))
+t9 = Transition(Side(b5), Side(b6, b7, b8, b9))
+t10 = Transition(Side(b6), Side(b7, b8, b9, b10))
+t11 = Transition(Side(b7), Side(b8, b9, b10, g1))
+t12 = Transition(Side(b8), Side(b9, b10, g1, g2))
+t13 = Transition(Side(b9), Side(b10, g1, g2, g3))
+t14 = Transition(Side(b10), Side(g1, g2, g3, g4))
+system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14)
+
 
 
 5 blocks
