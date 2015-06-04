@@ -52,15 +52,19 @@ b8 = Variable(TypeVariable.UNKNOWN)
 b9 = Variable(TypeVariable.UNKNOWN)
 b10 = Variable(TypeVariable.UNKNOWN)
 
+ts1 = Transition(Side(a2, a3), Side(b1, a1))
+ts2 = Transition(Side(a3, b1), Side(b2, a2))
+ts3 = Transition(Side(b1, b2), Side(b3, a3))
+ts4 = Transition(Side(b2, b3), Side(b4, b1))
+ts5 = Transition(Side(b3, b4), Side(b5, b2))
+ts6 = Transition(Side(b4, b5), Side(b6, b3))
+ts7 = Transition(Side(b5, b6), Side(b7, b4))
+ts8 = Transition(Side(b6, b7), Side(g1, b5))
+ts9 = Transition(Side(b7, g1), Side(g2, b6))
+ts10 = Transition(Side(g1, g2), Side(g3, b7))
 
-ts1 = Transition(Side(a2, a3, a4), Side(b1, a1))
-ts2 = Transition(Side(a3, a4, b1), Side(b2, a2))
-ts3 = Transition(Side(a4, b1, b2), Side(g1, a3))
-ts4 = Transition(Side(b1, b2, g1), Side(g2, a4))
-ts5 = Transition(Side(b2, g1, g2), Side(g3, b1))
-ts6 = Transition(Side(g1, g2, g3), Side(g4, b2))
 
-system = SystemTransition(ts1, ts2, ts3, ts4, ts5, ts6)
+system = SystemTransition(ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8, ts9, ts10)
 
 # t1 = Transition(Side(a1), Side(a2, a3, a4, a5, b1))
 # t2 = Transition(Side(a2), Side(a3, a4, a5, b1, b2))
@@ -109,9 +113,9 @@ for input_index in xrange(amount_conditions):
         print "case is %d" % (case + 1)
         case += 1
         # if case < 71:
-        #     continue
+        #    continue
         # if case > 71:
-        #     exit(0)
+        #    exit(0)
         print "Input condition ", str(in_cond)
         print "Output condition ", str(out_cond)
 
