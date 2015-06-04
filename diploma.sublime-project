@@ -1,0 +1,33 @@
+{
+	"SublimeLinter":
+	{
+		"@python": 2.7
+	},
+	"build_systems":
+	[
+		{
+			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
+			"name": "Anaconda Python Builder",
+			"selector": "source.python",
+			"shell_cmd": "python -u \"$file\""
+		}
+	],
+	"file_include_patterns":
+	[
+		"*.py"
+	],
+	"folders":
+	[
+		{
+			"path": "./"
+		}
+	],
+	"settings":
+	{
+		"settings":
+		{
+			"python_interpreter": "/usr/bin/python2.7"
+		},
+		"tab_size": 8
+	}
+}
