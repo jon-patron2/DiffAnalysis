@@ -289,6 +289,15 @@ class SystemTransition(object):
                     new_system.analyse_and_set_custom_conditions(new_custom_c)
                     print "New system " + str(new_system)
                     print "Updated custom conditions " + str(new_custom_c)
+                    if new_custom_c.exist_contradiction(comcon_nz):
+                        print "ESTIMATE: CONDITIONS HAVE CONTADICTIONS2"
+                        print "custom_conditions %s\n" % str(custom_cond)
+                        print "common_in ", str(common_in)
+                        print "common_out ", str(common_out)
+                        SystemTransition.__write_result(
+                                system, custom_cond, common_in, common_out, count_triviality,
+                                count_with_unknowns, res_list, call_as_fork, True)
+                        return
                     print "Goto recursion"
 
                 except ConditionExeption:
