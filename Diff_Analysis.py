@@ -12,9 +12,14 @@ from SMS4 import three_blocks_systems
 from SMS4 import a1
 from SMS4 import a2
 from SMS4 import a3
+from SMS4 import a4
+from SMS4 import a5
+
 from SMS4 import g1
 from SMS4 import g2
 from SMS4 import g3
+from SMS4 import g4
+from SMS4 import g5
 
 
 def main(system, inputs, outputs):
@@ -49,10 +54,10 @@ def main(system, inputs, outputs):
             case_results = []
             print "case is %d" % (case + 1)
             case += 1
-            if case < 50:
-                continue
-            if case > 50:
-                exit(0)
+            # if case < 50:
+            #     continue
+            # if case > 50:
+            #     exit(0)
             print "Input condition ", str(in_cond)
             print "Output condition ", str(out_cond)
 
@@ -140,10 +145,10 @@ def main(system, inputs, outputs):
     return (str(max_est), final_str)
 
 
-f = open('3_block_sms4_res', 'w+', 0)
+f = open('4_block_sms4_res', 'w+', 0)
 
 for key, value in three_blocks_systems.items():
-    res = main(value, [a1, a2, a3], [g1, g2, g3])
+    res = main(value, [a1, a2, a3, a4], [g1, g2, g3, g4])
     f.write("%s blocks: %s\n" % (str(key), str(res)))
     f.flush()
 
