@@ -96,9 +96,9 @@ class SystemTransition(object):
     def apply_condition(self, condition):
         assert isinstance(condition, Condition)
         for transition in self.__transitions:
-            # print "B transition %s ||| condition %s" % (str(transition), str(condition))
+            # print "Before transition %s ||| condition %s" % (str(transition), str(condition))
             transition.apply_condition(condition)
-            # print "A transition %s ||| condition %s" % (str(transition), str(condition))
+            # print "After transition %s ||| condition %s" % (str(transition), str(condition))
 
     def apply_conditions(self, conditions):
         assert isinstance(conditions, list)
@@ -106,6 +106,7 @@ class SystemTransition(object):
             self.apply_condition(condition)
 
     def analyse_and_set_custom_conditions(self, custom_cond):
+        count = 0
         null_trans = []
         rm = []
         for transition in self.__transitions:
@@ -115,6 +116,7 @@ class SystemTransition(object):
             elif transition.has_empty_side():
                 # print "emty == ", transition
                 null_trans.append(transition)
+                count += 1
 
         for transition in null_trans:
             self.__transitions.remove(transition)
@@ -123,6 +125,7 @@ class SystemTransition(object):
 
         for trans in null_trans:
             custom_cond.append_condition(trans.make_condition())
+        return count
 
     def apply_custom_conditions(self, custom_conditions):
         for index in xrange(len(custom_conditions) - 1, -1, -1):
@@ -180,6 +183,15 @@ class SystemTransition(object):
                 count_simple += 1
 
         return count_simple == len(self.__transitions)
+
+    def simplify_with_custom_conditions(self, cust_cond):
+        count_add_cc = 1  # by default
+        while count_add_cc > 0:
+            # print "[simplify] New custom conditions " + str(cust_cond)
+            self.apply_custom_conditions(cust_cond)
+            # print "[simplify] New system apply_custom_conditions \n" + str(self)
+            count_add_cc = self.analyse_and_set_custom_conditions(cust_cond)
+            # print "[simplify] New system " + str(self)
 
     @staticmethod
     def estimate(system, custom_cond, common_in, common_out, comcon_nz, res_list, call_as_fork):
@@ -283,11 +295,8 @@ class SystemTransition(object):
                 try:
                     new_custom_c.append_condition(left_zc)
                     new_custom_c.append_condition(right_zc)
-                    print "New custom conditions " + str(new_custom_c)
-                    new_system.apply_custom_conditions(new_custom_c)
-                    print "New system apply_custom_conditions \n" + str(new_system)
-                    new_system.analyse_and_set_custom_conditions(new_custom_c)
-                    print "New system " + str(new_system)
+                    new_system.simplify_with_custom_conditions(new_custom_c)
+                    print "system after simplify \n" + str(new_system)
                     print "Updated custom conditions " + str(new_custom_c)
                     if new_custom_c.exist_contradiction(comcon_nz):
                         print "ESTIMATE: CONDITIONS HAVE CONTADICTIONS2"
@@ -295,7 +304,7 @@ class SystemTransition(object):
                         print "common_in ", str(common_in)
                         print "common_out ", str(common_out)
                         SystemTransition.__write_result(
-                                system, custom_cond, common_in, common_out, count_triviality,
+                                new_system, custom_cond, common_in, common_out, count_triviality,
                                 count_with_unknowns, res_list, call_as_fork, True)
                         return
                     print "Goto recursion"
@@ -303,7 +312,7 @@ class SystemTransition(object):
                 except ConditionExeption:
                     print "#"*30 + "Catche ConditionExeption. System FAIL." + "#"*30
                     SystemTransition.__write_result(
-                        system, custom_cond, common_in, common_out, count_triviality,
+                        new_system, custom_cond, common_in, common_out, count_triviality,
                         count_with_unknowns, res_list, call_as_fork, True)
                 else:
                     if not fork:
@@ -375,9 +384,11 @@ class SystemTransition(object):
             est = ("p^%d" % expo, pow(0.5, expo))
             if len(res_list) == 0:
                 res_list.append(est)
+                print "append " + est[0]
             else:
                 if res_list[0] == 'fork':
                     res_list.append(est)
+                    print "append " + est[0]
                 else:
                     # assert len(res_list) == 1
                     print "res_list = " + str(res_list)
@@ -388,11 +399,13 @@ class SystemTransition(object):
                             print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
                             if expo < comp_expo:
                                 res_list[x] = est
+                                print "replace " + est[0]
                             else:
                                 print "list withou changes"
                             break
                     else:
                         res_list.append(est)
+                        print "append " + est[0]
                     print "list %s" + str(res_list)
 
             # res_list.append(str_est)
