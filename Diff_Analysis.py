@@ -8,18 +8,14 @@ from conditions import CommonConditions
 from conditions import CustomConditions
 from test_for_res import get_normalise_result
 
-from SMS4 import three_blocks_systems
-from SMS4 import a1
-from SMS4 import a2
-from SMS4 import a3
-from SMS4 import a4
-from SMS4 import a5
+from FourCell import three_blocks_systems
+from FourCell import a1
+from FourCell import a2
+from FourCell import a3
 
-from SMS4 import g1
-from SMS4 import g2
-from SMS4 import g3
-from SMS4 import g4
-from SMS4 import g5
+from FourCell import g1
+from FourCell import g2
+from FourCell import g3
 
 
 def main(system, inputs, outputs):
@@ -145,10 +141,10 @@ def main(system, inputs, outputs):
     return (str(max_est), final_str)
 
 
-f = open('4_block_sms4_res', 'w+', 0)
+f = open('3_block_sms4_res', 'w+', 0)
 
 for key, value in three_blocks_systems.items():
-    res = main(value, [a1, a2, a3, a4], [g1, g2, g3, g4])
+    res = main(value, [a1, a2, a3], [g1, g2, g3])
     f.write("%s blocks: %s\n" % (str(key), str(res)))
     f.flush()
 
