@@ -382,33 +382,33 @@ class SystemTransition(object):
         else:
             expo = count_triviality + count_with_unknowns - unknown_vars
             est = ("p^%d" % expo, pow(0.5, expo))
-            if len(res_list) == 0:
-                res_list.append(est)
-                print "append " + est[0]
-            else:
-                if res_list[0] == 'fork':
-                    res_list.append(est)
-                    print "append " + est[0]
-                else:
-                    # assert len(res_list) == 1
-                    print "res_list = " + str(res_list)
+            res_list.append(est)
+            # if len(res_list) == 0:
+            #     res_list.append(est)
+            #     print "append " + est[0]
+            # else:
+            #     if res_list[0] == 'fork':
+            #         res_list.append(est)
+            #         print "append " + est[0]
+            #     else:
+            #         # assert len(res_list) == 1
+            #         print "res_list = " + str(res_list)
 
-                    for x in xrange(len(res_list)):
-                        if isinstance(res_list[x], tuple):
-                            comp_expo = res_list[x][1]
-                            print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
-                            if expo < comp_expo:
-                                res_list[x] = est
-                                print "replace " + est[0]
-                            else:
-                                print "list withou changes"
-                            break
-                    else:
-                        res_list.append(est)
-                        print "append " + est[0]
-                    print "list %s" + str(res_list)
+            #         for x in xrange(len(res_list)):
+            #             if isinstance(res_list[x], tuple):
+            #                 comp_expo = res_list[x][1]
+            #                 print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
+            #                 if expo < comp_expo:
+            #                     res_list[x] = est
+            #                     print "replace " + est[0]
+            #                 else:
+            #                     print "list withou changes"
+            #                 break
+            #         else:
+            #             res_list.append(est)
+            #             print "append " + est[0]
+            #         print "list %s" + str(res_list)
 
-            # res_list.append(str_est)
         if not call_as_fork:
             print "Not fork end"
         else:
