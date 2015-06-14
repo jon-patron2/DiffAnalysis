@@ -49,16 +49,16 @@ def get_max_from_tuples(lst):
 def cutted_tuples(lst):
     if len(lst) == 1:
         return lst
-    print "[cutted_tuples] lst = " + str(lst)
+    # print "[cutted_tuples] lst = " + str(lst)
     res = [elem for elem in lst if len(elem[0]) <= 4]
     if len(res) == 0:
         return lst
     for elem in res:
         lst.remove(elem)
 
-    print "[cutted_tuples] res = " + str(res)
+    # print "[cutted_tuples] res = " + str(res)
     lst.append(get_max_from_tuples(res))
-    print "[cutted_tuples] fin" + str(lst)
+    # print "[cutted_tuples] fin" + str(lst)
     return lst
 
 
@@ -108,7 +108,7 @@ def choose_max(array, root, lst):
                     tup = copy_lst[i]
                     lst[x] = tup
                     # print "lst[x] = " + str(lst[x])
-                    print "copy root " + str(root)
+                    # print "copy root " + str(root)
                     array.append(copy.deepcopy(root))
                 tup = copy_lst[-1]
                 lst[x] = tup
@@ -131,7 +131,7 @@ def get_normalise_result(lst):
             # print "af merge_fork = " + str(lst)
             # print "="*50 + "new iteration end" + "="*50
     res = []
-    print "res  = " + str(res)
+    # print "res  = " + str(res)
     for x in array:
         res.extend(x)
     return res
@@ -165,7 +165,7 @@ def normalise_polinom(polinom):
 
 def put_normalise_to_dict(data, dct, num_case):
     arr = get_normalise_result(data)
-    print "[put_normalise_to_dict] got " + str(arr)
+    # print "[put_normalise_to_dict] got " + str(arr)
     while '' in arr:
         arr.remove('')
     for x in arr:
