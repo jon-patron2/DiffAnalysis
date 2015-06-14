@@ -71,6 +71,7 @@ class Transition(object):
 
 
 class SystemTransition(object):
+    amount_cases = 0
 
     def __init__(self, *transitions):
         assert all([isinstance(x, Transition) for x in transitions])
@@ -360,6 +361,8 @@ class SystemTransition(object):
             was_fail
             ):
 
+        SystemTransition.amount_cases += 1
+
         unknown_vars = system.count_unknown_vars()
         dct = {
             "system": system,
@@ -382,6 +385,7 @@ class SystemTransition(object):
         else:
             expo = count_triviality + count_with_unknowns - unknown_vars
             est = ("p^%d" % expo, pow(0.5, expo))
+            print "current est " + str(est)
             # res_list.append(est)
             if len(res_list) == 0:
                 res_list.append(est)
@@ -397,10 +401,10 @@ class SystemTransition(object):
                     for x in xrange(len(res_list)):
                         if isinstance(res_list[x], tuple):
                             comp_expo = res_list[x][1]
-                            print "expo vs comp_expo == %d vs %d" % (expo, comp_expo)
-                            if expo < comp_expo:
+                            print "compare with est " + str(res_list[x])
+                            if est[1] > comp_expo:
                                 res_list[x] = est
-                                print "replace " + est[0]
+                                print "replace to " + est[0]
                             else:
                                 print "list withou changes"
                             break

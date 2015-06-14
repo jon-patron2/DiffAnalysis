@@ -8,14 +8,16 @@ from conditions import CommonConditions
 from conditions import CustomConditions
 from test_for_res import put_normalise_to_dict
 
-from SMS4 import three_blocks_systems
-from SMS4 import a1
-from SMS4 import a2
-from SMS4 import a3
+from FourCell import four_blocks_systems
+from FourCell import a1
+from FourCell import a2
+from FourCell import a3
+from FourCell import a4
 
-from SMS4 import g1
-from SMS4 import g2
-from SMS4 import g3
+from FourCell import g1
+from FourCell import g2
+from FourCell import g3
+from FourCell import g4
 
 
 def main(system, inputs, outputs):
@@ -50,10 +52,10 @@ def main(system, inputs, outputs):
             case_results = []
             case += 1
             print "case is %d" % case
-            # if case < 50:
+            # if case < 59:
             #     continue
-            # if case > 50:
-            #     exit(0)
+            # if case > 59:
+            #     continue
             print "Input condition ", str(in_cond)
             print "Output condition ", str(out_cond)
 
@@ -117,15 +119,18 @@ def main(system, inputs, outputs):
     return sorted(res, key=lambda pair: pair[0])
 
 
-f = open('3_block_sms4_res', 'w+', 0)
+f = open('4_block_FC_res', 'w+', 0)
 
-for key, value in three_blocks_systems.items():
-    res = main(value, [a1, a2, a3], [g1, g2, g3])
-    f.write("%s blocks: \n" % str(key))
+for key, value in four_blocks_systems.items():
+    res = main(value, [a1, a2, a3, a4], [g1, g2, g3, g4])
+    f.write("%s rounds: \n" % str(key))
     for pair in res:
         est = "%s   [case %d]\n" % (pair[0], pair[1])
         print est
         f.write(est)
+    f.flush()
+    f.write("Was analyse %d cases.\n\n" % SystemTransition.amount_cases)
+    SystemTransition.amount_cases = 0  # reset for future cases
     f.flush()
 
 f.close()

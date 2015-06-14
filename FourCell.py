@@ -27,6 +27,9 @@ b8 = Variable(TypeVariable.UNKNOWN)
 b9 = Variable(TypeVariable.UNKNOWN)
 b10 = Variable(TypeVariable.UNKNOWN)
 b11 = Variable(TypeVariable.UNKNOWN)
+b12 = Variable(TypeVariable.UNKNOWN)
+b13 = Variable(TypeVariable.UNKNOWN)
+b14 = Variable(TypeVariable.UNKNOWN)
 
 # 3 blocks
 three_blocks_systems = {}
@@ -173,6 +176,25 @@ t13 = Transition(Side(b10), Side(b11, g1, g2))
 t14 = Transition(Side(b11), Side(g1, g2, g3))
 system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14)
 three_blocks_systems["14"] = system
+
+# 15 rounds
+t1 = Transition(Side(a1), Side(a2, a3, b1))
+t2 = Transition(Side(a2), Side(a3, b1, b2))
+t3 = Transition(Side(a3), Side(b1, b2, b3))
+t4 = Transition(Side(b1), Side(b2, b3, b4))
+t5 = Transition(Side(b2), Side(b3, b4, b5))
+t6 = Transition(Side(b3), Side(b4, b5, b6))
+t7 = Transition(Side(b4), Side(b5, b6, b7))
+t8 = Transition(Side(b5), Side(b6, b7, b8))
+t9 = Transition(Side(b6), Side(b7, b8, b9))
+t10 = Transition(Side(b7), Side(b8, b9, b10))
+t11 = Transition(Side(b8), Side(b9, b10, b11))
+t12 = Transition(Side(b9), Side(b10, b11, b12))
+t13 = Transition(Side(b10), Side(b11, b12, g1))
+t14 = Transition(Side(b11), Side(b12, g1, g2))
+t15 = Transition(Side(b12), Side(g1, g2, g3))
+system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15)
+three_blocks_systems["15"] = system
 
 
 # 4 blocks
@@ -321,6 +343,87 @@ t14 = Transition(Side(b10), Side(g1, g2, g3, g4))
 system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14)
 four_blocks_systems["14"] = system
 
+# 15 rounds
+t1 = Transition(Side(a1), Side(a2, a3, a4, b1))
+t2 = Transition(Side(a2), Side(a3, a4, b1, b2))
+t3 = Transition(Side(a3), Side(a4, b1, b2, b3))
+t4 = Transition(Side(a4), Side(b1, b2, b3, b4))
+t5 = Transition(Side(b1), Side(b2, b3, b4, b5))
+t6 = Transition(Side(b2), Side(b3, b4, b5, b6))
+t7 = Transition(Side(b3), Side(b4, b5, b6, b7))
+t8 = Transition(Side(b4), Side(b5, b6, b7, b8))
+t9 = Transition(Side(b5), Side(b6, b7, b8, b9))
+t10 = Transition(Side(b6), Side(b7, b8, b9, b10))
+t11 = Transition(Side(b7), Side(b8, b9, b10, b11))
+t12 = Transition(Side(b8), Side(b9, b10, b11, g1))
+t13 = Transition(Side(b9), Side(b10, b11, g1, g2))
+t14 = Transition(Side(b10), Side(b11, g1, g2, g3))
+t15 = Transition(Side(b11), Side(g1, g2, g3, g4))
+system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15)
+four_blocks_systems["15"] = system
+
+# 16 rounds
+t1 = Transition(Side(a1), Side(a2, a3, a4, b1))
+t2 = Transition(Side(a2), Side(a3, a4, b1, b2))
+t3 = Transition(Side(a3), Side(a4, b1, b2, b3))
+t4 = Transition(Side(a4), Side(b1, b2, b3, b4))
+t5 = Transition(Side(b1), Side(b2, b3, b4, b5))
+t6 = Transition(Side(b2), Side(b3, b4, b5, b6))
+t7 = Transition(Side(b3), Side(b4, b5, b6, b7))
+t8 = Transition(Side(b4), Side(b5, b6, b7, b8))
+t9 = Transition(Side(b5), Side(b6, b7, b8, b9))
+t10 = Transition(Side(b6), Side(b7, b8, b9, b10))
+t11 = Transition(Side(b7), Side(b8, b9, b10, b11))
+t12 = Transition(Side(b8), Side(b9, b10, b11, b12))
+t13 = Transition(Side(b9), Side(b10, b11, b12, g1))
+t14 = Transition(Side(b10), Side(b11, b12, g1, g2))
+t15 = Transition(Side(b11), Side(b12, g1, g2, g3))
+t16 = Transition(Side(b12), Side(g1, g2, g3, g4))
+system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16)
+four_blocks_systems["16"] = system
+
+# 17 rounds
+t1 = Transition(Side(a1), Side(a2, a3, a4, b1))
+t2 = Transition(Side(a2), Side(a3, a4, b1, b2))
+t3 = Transition(Side(a3), Side(a4, b1, b2, b3))
+t4 = Transition(Side(a4), Side(b1, b2, b3, b4))
+t5 = Transition(Side(b1), Side(b2, b3, b4, b5))
+t6 = Transition(Side(b2), Side(b3, b4, b5, b6))
+t7 = Transition(Side(b3), Side(b4, b5, b6, b7))
+t8 = Transition(Side(b4), Side(b5, b6, b7, b8))
+t9 = Transition(Side(b5), Side(b6, b7, b8, b9))
+t10 = Transition(Side(b6), Side(b7, b8, b9, b10))
+t11 = Transition(Side(b7), Side(b8, b9, b10, b11))
+t12 = Transition(Side(b8), Side(b9, b10, b11, b12))
+t13 = Transition(Side(b9), Side(b10, b11, b12, b13))
+t14 = Transition(Side(b10), Side(b11, b12, b13, g1))
+t15 = Transition(Side(b11), Side(b12, b13, g1, g2))
+t16 = Transition(Side(b12), Side(b13, g1, g2, g3))
+t17 = Transition(Side(b13), Side(g1, g2, g3, g4))
+system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17)
+four_blocks_systems["17"] = system
+
+# 18 rounds
+t1 = Transition(Side(a1), Side(a2, a3, a4, b1))
+t2 = Transition(Side(a2), Side(a3, a4, b1, b2))
+t3 = Transition(Side(a3), Side(a4, b1, b2, b3))
+t4 = Transition(Side(a4), Side(b1, b2, b3, b4))
+t5 = Transition(Side(b1), Side(b2, b3, b4, b5))
+t6 = Transition(Side(b2), Side(b3, b4, b5, b6))
+t7 = Transition(Side(b3), Side(b4, b5, b6, b7))
+t8 = Transition(Side(b4), Side(b5, b6, b7, b8))
+t9 = Transition(Side(b5), Side(b6, b7, b8, b9))
+t10 = Transition(Side(b6), Side(b7, b8, b9, b10))
+t11 = Transition(Side(b7), Side(b8, b9, b10, b11))
+t12 = Transition(Side(b8), Side(b9, b10, b11, b12))
+t13 = Transition(Side(b9), Side(b10, b11, b12, b13))
+t14 = Transition(Side(b10), Side(b11, b12, b13, b14))
+t15 = Transition(Side(b11), Side(b12, b13, b14, g1))
+t16 = Transition(Side(b12), Side(b13, b14, g1, g2))
+t17 = Transition(Side(b13), Side(b14, g1, g2, g3))
+t18 = Transition(Side(b14), Side(g1, g2, g3, g4))
+system = SystemTransition(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18)
+four_blocks_systems["18"] = system
 
 # 5 blocks
 five_blocks_systems = {}
